@@ -1,5 +1,4 @@
 import React, { use } from "react";
-import VoyagerNavbar from "../components/voyager/VoyagerNavbar";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
@@ -14,32 +13,33 @@ import {
       FiActivity,
       FiMusic,
 } from "react-icons/fi";
+import AdminNavbar from "../components/admin/AdminNavbar";
 
 const AdminDashboard = () => {
       const quickActions = [
             {
                   icon: <FiCoffee className="text-2xl" />,
-                  label: "Foods",
+                  label: "Food Management",
                   link: "/admin/food",
             },
             {
                   icon: <FiGift className="text-2xl" />,
-                  label: "Gifts",
-                  link: "/admin/gift-shop",
+                  label: "Gift Shop Admin",
+                  link: "/admin/gifts",
             },
             {
                   icon: <FiFilm className="text-2xl" />,
-                  label: "Movies",
+                  label: "Movie Management",
                   link: "/admin/movies",
             },
             {
                   icon: <FiSmile className="text-2xl" />,
-                  label: "Spa",
+                  label: "Spa Services",
                   link: "/admin/spa",
             },
             {
                   icon: <FiActivity className="text-2xl" />,
-                  label: "Activities",
+                  label: "Activities Control",
                   link: "/admin/activities",
             },
             {
@@ -51,12 +51,15 @@ const AdminDashboard = () => {
 
       return (
             <div className="min-h-screen bg-gray-50">
-                  <VoyagerNavbar />
+                  <AdminNavbar />
                   {/* Header */}
                   <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6">
-                        <h1 className="text-3xl font-bold">Welcome Aboard!</h1>
+                        <h1 className="text-3xl font-bold">
+                              Admin Control Panel
+                        </h1>
                         <p className="mt-2">
-                              Your cruise dashboard for a perfect voyage
+                              Manage cruise services, track operations, and
+                              oversee onboard experiences.
                         </p>
                   </div>
 

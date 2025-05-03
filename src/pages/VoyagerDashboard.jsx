@@ -1,7 +1,5 @@
-import React, { use } from "react";
+import React, { useEffect, useState } from "react";
 import VoyagerNavbar from "../components/voyager/VoyagerNavbar";
-import { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import {
       FiClock,
@@ -13,97 +11,65 @@ import {
       FiSmile,
       FiActivity,
       FiMusic,
+      FiPackage,
+      FiCheckCircle,
+      FiTruck,
 } from "react-icons/fi";
 import { useVoyagerContext } from "../context/VoyagerContext";
 
 const VoyagerDashboard = () => {
       const [upcomingActivities, setUpcomingActivities] = useState([]);
       const [recentOrders, setRecentOrders] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const { getUserOrders, getUserBookings } = useVoyagerContext();
 
-      const { getUserOrders, getUserBookings } = useVoyagerContext(); // Assuming you have a context to get user orders
+      const [weather] = useState({
+            temperature: 28,
+            condition: "Sunny",
+            wind: "12 km/h",
+            seaStatus: "Calm",
+      });
 
-      const [weather, setWeather] = useState(null);
-      const [location, setLocation] = useState({ lat: null, lon: null });
-      const [error, setError] = useState(null);
+      const getStatusIcon = (status) => {
+            switch (status.toLowerCase()) {
+                  case "delivered":
+                        return <FiCheckCircle className="text-green-500" />;
+                  case "processing":
+                        return <FiClock className="text-yellow-500" />;
+                  case "shipped":
+                        return <FiTruck className="text-blue-500" />;
+                  default:
+                        return <FiPackage className="text-gray-500" />;
+            }
+      };
 
-      // Function to fetch weather data using RapidAPI Weather API
-      // const fetchWeather = async (lat, lon) => {
-      //       const options = {
-      //             method: "GET",
-      //             url: "https://weather-api167.p.rapidapi.com/api/weather/forecast",
-      //             params: {
-      //                   lon: `${lon}`,
-      //                   lat: `${lat}`,
-      //                   units: "standard",
-      //                   mode: "json",
-      //                   lang: "en",
-      //             },
-      //             headers: {
-      //                   "x-rapidapi-key":
-      //                         "67f1c736bbmsh92f5dc61f3e10bdp1442c7jsnaa1aa109b9a5",
-      //                   "x-rapidapi-host": "weather-api167.p.rapidapi.com",
-      //                   Accept: "application/json",
-      //             },
-      //       };
+      const getTypeIcon = (type) => {
+            switch (type.toLowerCase()) {
+                  case "food":
+                        return <FiShoppingBag className="text-red-500" />;
+                  case "gift":
+                        return <FiPackage className="text-blue-500" />;
+                  default:
+                        return <FiPackage className="text-gray-500" />;
+            }
+      };
 
-      //       try {
-      //             const response = await axios.request(options);
-      //             console.log("Weather API response:", response.data);
+      const formatDate = (date) => {
+            if (!date) return "Unknown";
+            return new Date(date).toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+            });
+      };
 
-      //             const forecast = response.data.list[0]; // First forecast entry
-      //             const kelvinToCelsius = (k) => (k - 273.15).toFixed(1);
-
-      //             setWeather({
-      //               temp: kelvinToCelsius(forecast.main.temprature),
-      //               condition: forecast.weather[0].description,
-      //               wind: `${forecast.wind.speed} m/s`,
-      //             //   city:forecast.city.name,
-      //               seaStatus: forecast.wind.speed > 5 ? "Rough" : "Calm",
-      //               icon: `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`,
-      //               time: forecast.dt_txt,
-      //             });
-      //           }catch (error) {
-      //             console.error("Weather API error:", error);
-      //             setError("Failed to fetch weather data");
-      //       }
-      // };
-
-      // // Get user's current location
-      // useEffect(() => {
-      //       if (navigator.geolocation) {
-      //             navigator.geolocation.getCurrentPosition(
-      //                   (position) => {
-      //                         const { latitude, longitude } = position.coords;
-      //                         setLocation({ lat: latitude, lon: longitude });
-      //                         fetchWeather(latitude, longitude);
-      //                   },
-      //                   (err) => {
-      //                         setError(
-      //                               "Unable to retrieve location: " +
-      //                                     err.message
-      //                         );
-      //                   }
-      //             );
-      //       } else {
-      //             setError("Geolocation is not supported by this browser.");
-      //       }
-      // }, []);
-
-      // // Refresh weather data every 10 minutes
-      // useEffect(() => {
-      //       if (location.lat && location.lon) {
-      //             const interval = setInterval(() => {
-      //                   fetchWeather(location.lat, location.lon);
-      //             }, 10 * 60 * 1000);
-      //             return () => clearInterval(interval);
-      //       }
-      // }, [location]);
-
-      // Mock data - replace with actual API calls
       useEffect(() => {
             const loadDashboardData = async () => {
-                  // Simulate loading delay (optional)
-                  setTimeout(async () => {
+                  try {
+                        setLoading(true);
+
+                        // Load mock activities (replace with actual API calls)
                         setUpcomingActivities([
                               {
                                     id: 1,
@@ -128,31 +94,24 @@ const VoyagerDashboard = () => {
                               },
                         ]);
 
-                        try {
-                              const orders = await getUserOrders();
-                              const bookings = await getUserBookings();
-                              console.log("User bookings:", bookings);
+                        // Load actual orders and bookings
+                        const orders = await getUserOrders();
+                        const bookings = await getUserBookings();
 
-                              const sortedOrders = orders
-                                    .sort(
-                                          (a, b) =>
-                                                new Date(b.time) -
-                                                new Date(a.time)
-                                    ) // Sort by 'time' field
-                                    .slice(0, 3); // Get top 3
+                        const sortedOrders = orders
+                              .sort(
+                                    (a, b) =>
+                                          new Date(b.createdAt) -
+                                          new Date(a.createdAt)
+                              )
+                              .slice(0, 3);
 
-                              setRecentOrders(sortedOrders);
-                        } catch (error) {
-                              console.error("Error loading orders:", error);
-                        }
-
-                        setWeather({
-                              temperature: 28,
-                              condition: "Sunny",
-                              wind: "12 km/h",
-                              seaStatus: "Calm",
-                        });
-                  }, 500);
+                        setRecentOrders(sortedOrders);
+                  } catch (error) {
+                        console.error("Error loading dashboard data:", error);
+                  } finally {
+                        setLoading(false);
+                  }
             };
 
             loadDashboardData();
@@ -241,50 +200,42 @@ const VoyagerDashboard = () => {
                                           </Link>
                                     </div>
                                     <div className="space-y-4">
-                                          {upcomingActivities.length > 0 ? (
-                                                upcomingActivities.map(
-                                                      (activity) => (
-                                                            <div
-                                                                  key={
-                                                                        activity.id
-                                                                  }
-                                                                  className="border-l-4 border-blue-500 pl-4 py-2"
-                                                            >
-                                                                  <div className="flex justify-between">
-                                                                        <h3 className="font-medium text-gray-800">
-                                                                              {
-                                                                                    activity.name
-                                                                              }
-                                                                        </h3>
-                                                                        <span className="text-sm text-gray-500">
-                                                                              {
-                                                                                    activity.date
-                                                                              }
-                                                                        </span>
-                                                                  </div>
-                                                                  <div className="flex items-center mt-1 text-sm text-gray-600">
-                                                                        <FiClock className="mr-1" />
-                                                                        <span>
-                                                                              {
-                                                                                    activity.time
-                                                                              }
-                                                                        </span>
-                                                                        <span className="mx-2">
-                                                                              •
-                                                                        </span>
-                                                                        <span>
-                                                                              {
-                                                                                    activity.location
-                                                                              }
-                                                                        </span>
-                                                                  </div>
+                                          {upcomingActivities.map(
+                                                (activity) => (
+                                                      <div
+                                                            key={activity.id}
+                                                            className="border-l-4 border-blue-500 pl-4 py-2"
+                                                      >
+                                                            <div className="flex justify-between">
+                                                                  <h3 className="font-medium text-gray-800">
+                                                                        {
+                                                                              activity.name
+                                                                        }
+                                                                  </h3>
+                                                                  <span className="text-sm text-gray-500">
+                                                                        {
+                                                                              activity.date
+                                                                        }
+                                                                  </span>
                                                             </div>
-                                                      )
+                                                            <div className="flex items-center mt-1 text-sm text-gray-600">
+                                                                  <FiClock className="mr-1" />
+                                                                  <span>
+                                                                        {
+                                                                              activity.time
+                                                                        }
+                                                                  </span>
+                                                                  <span className="mx-2">
+                                                                        •
+                                                                  </span>
+                                                                  <span>
+                                                                        {
+                                                                              activity.location
+                                                                        }
+                                                                  </span>
+                                                            </div>
+                                                      </div>
                                                 )
-                                          ) : (
-                                                <p className="text-gray-500">
-                                                      Loading activities...
-                                                </p>
                                           )}
                                     </div>
                               </div>
@@ -294,60 +245,52 @@ const VoyagerDashboard = () => {
                                     <h2 className="text-xl font-semibold mb-4 text-gray-800">
                                           Weather & Ship Status
                                     </h2>
-                                    {weather ? (
-                                          <div className="space-y-4">
-                                                <div className="flex items-center">
-                                                      <div className="text-5xl font-light mr-4">
-                                                            28°
-                                                      </div>
-                                                      <div>
-                                                            <div className="font-medium">
-                                                                  Sunny
-                                                            </div>
-                                                            <div className="text-sm text-gray-600">
-                                                                  Perfect cruise
-                                                                  weather
-                                                            </div>
-                                                      </div>
+                                    <div className="space-y-4">
+                                          <div className="flex items-center">
+                                                <div className="text-5xl font-light mr-4">
+                                                      {weather.temperature}°
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                      <div className="bg-blue-50 p-3 rounded-lg">
-                                                            <div className="text-sm text-gray-500">
-                                                                  Wind
-                                                            </div>
-                                                            <div className="font-medium">
-                                                                  {weather.wind}
-                                                            </div>
-                                                      </div>
-                                                      <div className="bg-blue-50 p-3 rounded-lg">
-                                                            <div className="text-sm text-gray-500">
-                                                                  Sea Status
-                                                            </div>
-                                                            <div className="font-medium">
-                                                                  {
-                                                                        weather.seaStatus
-                                                                  }
-                                                            </div>
-                                                      </div>
-                                                </div>
-                                                <div className="pt-4 border-t border-gray-200">
-                                                      <h3 className="font-medium mb-2">
-                                                            Current Location
-                                                      </h3>
-                                                      <div className="text-sm text-gray-600">
-                                                            Caribbean Sea
+                                                <div>
+                                                      <div className="font-medium">
+                                                            {weather.condition}
                                                       </div>
                                                       <div className="text-sm text-gray-600">
-                                                            Heading to: Nassau,
-                                                            Bahamas
+                                                            Perfect cruise
+                                                            weather
                                                       </div>
                                                 </div>
                                           </div>
-                                    ) : (
-                                          <p className="text-gray-500">
-                                                Loading weather data...
-                                          </p>
-                                    )}
+                                          <div className="grid grid-cols-2 gap-4">
+                                                <div className="bg-blue-50 p-3 rounded-lg">
+                                                      <div className="text-sm text-gray-500">
+                                                            Wind
+                                                      </div>
+                                                      <div className="font-medium">
+                                                            {weather.wind}
+                                                      </div>
+                                                </div>
+                                                <div className="bg-blue-50 p-3 rounded-lg">
+                                                      <div className="text-sm text-gray-500">
+                                                            Sea Status
+                                                      </div>
+                                                      <div className="font-medium">
+                                                            {weather.seaStatus}
+                                                      </div>
+                                                </div>
+                                          </div>
+                                          <div className="pt-4 border-t border-gray-200">
+                                                <h3 className="font-medium mb-2">
+                                                      Current Location
+                                                </h3>
+                                                <div className="text-sm text-gray-600">
+                                                      Caribbean Sea
+                                                </div>
+                                                <div className="text-sm text-gray-600">
+                                                      Heading to: Nassau,
+                                                      Bahamas
+                                                </div>
+                                          </div>
+                                    </div>
                               </div>
                         </div>
 
@@ -364,79 +307,148 @@ const VoyagerDashboard = () => {
                                           View All
                                     </Link>
                               </div>
-                              <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                          <thead className="bg-gray-50">
-                                                <tr>
-                                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                                            Type
-                                                      </th>
-                                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                                            Items
-                                                      </th>
-                                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                                            Status
-                                                      </th>
-                                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                                            Time
-                                                      </th>
-                                                </tr>
-                                          </thead>
-                                          <tbody className="bg-white divide-y divide-gray-200">
-                                                {recentOrders.length > 0 ? (
-                                                      recentOrders.map(
+                              {loading ? (
+                                    <div className="text-center py-8">
+                                          <div className="animate-pulse flex justify-center">
+                                                <div className="h-8 w-8 bg-blue-200 rounded-full"></div>
+                                          </div>
+                                          <p className="mt-2 text-gray-500">
+                                                Loading your orders...
+                                          </p>
+                                    </div>
+                              ) : recentOrders.length > 0 ? (
+                                    <div className="overflow-x-auto">
+                                          <table className="min-w-full divide-y divide-gray-200">
+                                                <thead className="bg-gray-50">
+                                                      <tr>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Order
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Items
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Total
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Status
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Date
+                                                            </th>
+                                                      </tr>
+                                                </thead>
+                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                      {recentOrders.map(
                                                             (order) => (
                                                                   <tr
                                                                         key={
                                                                               order.id
                                                                         }
+                                                                        className="hover:bg-gray-50"
                                                                   >
-                                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                                              {
-                                                                                    order.type
-                                                                              }
+                                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                                              <div className="flex items-center">
+                                                                                    <div className="flex-shrink-0">
+                                                                                          {getTypeIcon(
+                                                                                                order.type
+                                                                                          )}
+                                                                                    </div>
+                                                                                    <div className="ml-4">
+                                                                                          <div className="text-sm font-medium text-gray-900">
+                                                                                                {
+                                                                                                      order.type
+                                                                                                }{" "}
+                                                                                                Order
+                                                                                          </div>
+                                                                                          <div className="text-sm text-gray-500">
+                                                                                                #
+                                                                                                {order.id.substring(
+                                                                                                      0,
+                                                                                                      8
+                                                                                                )}
+                                                                                          </div>
+                                                                                    </div>
+                                                                              </div>
+                                                                        </td>
+                                                                        <td className="px-6 py-4">
+                                                                              <div className="text-sm text-gray-900 max-w-xs truncate">
+                                                                                    {order.items
+                                                                                          .map(
+                                                                                                (
+                                                                                                      item
+                                                                                                ) =>
+                                                                                                      item.name
+                                                                                          )
+                                                                                          .join(
+                                                                                                ", "
+                                                                                          )}
+                                                                              </div>
+                                                                              <div className="text-xs text-gray-500">
+                                                                                    {
+                                                                                          order
+                                                                                                .items
+                                                                                                .length
+                                                                                    }{" "}
+                                                                                    {order
+                                                                                          .items
+                                                                                          .length ===
+                                                                                    1
+                                                                                          ? "item"
+                                                                                          : "items"}
+                                                                              </div>
                                                                         </td>
                                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                              {order.items.join(
-                                                                                    ", "
-                                                                              )}
+                                                                              $
+                                                                              {order.total?.toFixed(
+                                                                                    2
+                                                                              ) ||
+                                                                                    "0.00"}
                                                                         </td>
                                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                                              <span
-                                                                                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                          ${
-                                order.status === "Delivered"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-yellow-100 text-yellow-800"
-                          }`}
-                                                                              >
-                                                                                    {
+                                                                              <div className="flex items-center">
+                                                                                    {getStatusIcon(
                                                                                           order.status
-                                                                                    }
-                                                                              </span>
+                                                                                    )}
+                                                                                    <span
+                                                                                          className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${
+                                  order.status === "Delivered"
+                                        ? "bg-green-100 text-green-800"
+                                        : order.status === "Processing"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-gray-100 text-gray-800"
+                            }`}
+                                                                                    >
+                                                                                          {
+                                                                                                order.status
+                                                                                          }
+                                                                                    </span>
+                                                                              </div>
                                                                         </td>
                                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                              {
-                                                                                    order.time
-                                                                              }
+                                                                              {formatDate(
+                                                                                    order.createdAt
+                                                                              )}
                                                                         </td>
                                                                   </tr>
                                                             )
-                                                      )
-                                                ) : (
-                                                      <tr>
-                                                            <td
-                                                                  colSpan="4"
-                                                                  className="px-6 py-4 text-center text-sm text-gray-500"
-                                                            >
-                                                                  Loading order
-                                                                  history...
-                                                            </td>
-                                                      </tr>
-                                                )}
-                                          </tbody>
-                                    </table>
-                              </div>
+                                                      )}
+                                                </tbody>
+                                          </table>
+                                    </div>
+                              ) : (
+                                    <div className="p-6 text-center">
+                                          <FiPackage className="mx-auto h-12 w-12 text-gray-400" />
+                                          <h3 className="mt-2 text-sm font-medium text-gray-900">
+                                                No orders found
+                                          </h3>
+                                          <p className="mt-1 text-sm text-gray-500">
+                                                Your order history will appear
+                                                here once you make a purchase.
+                                          </p>
+                                    </div>
+                              )}
                         </div>
                   </div>
             </div>

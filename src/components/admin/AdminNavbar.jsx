@@ -3,15 +3,19 @@ import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
 import {
       FiHome,
-      FiCalendar,
-      FiShoppingCart,
       FiUser,
       FiLogOut,
       FiMenu,
       FiX,
+      FiCoffee,
+      FiGift,
+      FiFilm,
+      FiSmile,
+      FiActivity,
+      FiMusic,
 } from "react-icons/fi";
 
-export default function AdminNavbar() {
+const AdminNavbar = () => {
       const { currentUser, logout } = useAuth();
       const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
       const navigate = useNavigate();
@@ -29,38 +33,38 @@ export default function AdminNavbar() {
       const navItems = [
             {
                   name: "Dashboard",
-                  path: "/adminDashboard",
+                  path: "/admin/dashboard", // Updated to consistent path structure
                   icon: <FiHome className="mr-2" />,
             },
             {
-                  name: "Food",
+                  name: "Food Management",
                   path: "/admin/food",
-                  icon: <FiShoppingCart className="mr-2" />,
+                  icon: <FiCoffee className="mr-2" />, // More appropriate icon
             },
             {
                   name: "Gift Shop",
-                  path: "/admin/gift-shop",
-                  icon: <FiShoppingCart className="mr-2" />,
+                  path: "/admin/gifts",
+                  icon: <FiGift className="mr-2" />, // Specific gift icon
             },
             {
-                  name: "Movies",
+                  name: "Movie Screenings",
                   path: "/admin/movies",
-                  icon: <FiCalendar className="mr-2" />,
+                  icon: <FiFilm className="mr-2" />, // Movie-specific icon
             },
             {
-                  name: "Spa",
+                  name: "Spa Services",
                   path: "/admin/spa",
-                  icon: <FiCalendar className="mr-2" />,
+                  icon: <FiSmile className="mr-2" />, // Spa-related icon
             },
             {
                   name: "Activities",
                   path: "/admin/activities",
-                  icon: <FiCalendar className="mr-2" />,
+                  icon: <FiActivity className="mr-2" />, // Activities icon
             },
             {
                   name: "Entertainment",
                   path: "/admin/entertainment",
-                  icon: <FiCalendar className="mr-2" />,
+                  icon: <FiMusic className="mr-2" />, // Entertainment icon
             },
       ];
 
@@ -76,7 +80,7 @@ export default function AdminNavbar() {
                                     >
                                           <img
                                                 className="h-8 w-auto"
-                                                src="src\assets\logo.png" // Replace with your cruise logo
+                                                src="src\assets\logo.png"
                                           />
                                           <span className="ml-2 text-xl font-bold text-blue-600 hidden md:block">
                                                 Cruise Admin
@@ -204,4 +208,5 @@ export default function AdminNavbar() {
                   </div>
             </nav>
       );
-}
+};
+export default AdminNavbar;

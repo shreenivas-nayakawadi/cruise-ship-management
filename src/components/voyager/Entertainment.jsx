@@ -1,43 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiMusic, FiCalendar, FiClock, FiMapPin } from "react-icons/fi";
 import { useVoyagerContext } from "../../context/VoyagerContext";
 import VoyagerNavbar from "./VoyagerNavbar";
 
-export default function Entertainment() {
-      const [events] = useState([
-            {
-                  id: 1,
-                  title: "Jazz Night",
-                  performer: "The Ocean Quintet",
-                  time: "20:00 - 22:00",
-                  location: "Grand Lounge",
-                  date: "Tonight",
-                  description:
-                        "An evening of smooth jazz and classic standards",
-            },
-            {
-                  id: 2,
-                  title: "Comedy Show",
-                  performer: "Captain Chuckles",
-                  time: "21:30 - 23:00",
-                  location: "Laugh Lounge",
-                  date: "Tomorrow",
-                  description: "Stand-up comedy with our resident funnyman",
-            },
-            {
-                  id: 3,
-                  title: "Broadway Revue",
-                  performer: "Ship Show Company",
-                  time: "19:00 - 20:30",
-                  location: "Main Theater",
-                  date: "Day 3",
-                  description: "Highlights from your favorite musicals",
-            },
-      ]);
+const Entertainment = () => {
+      const [eventItems, setEventItems] = useState([]);
       const [selectedEvent, setSelectedEvent] = useState(null);
       const [bookingComplete, setBookingComplete] = useState(false);
 
-      const { loading, bookEntertainment } = useVoyagerContext();
+      const { loading, bookEntertainment, events, fetchEvents } =
+            useVoyagerContext();
 
       const handleReserve = async () => {
             const result = await bookEntertainment(selectedEvent);
@@ -50,6 +22,14 @@ export default function Entertainment() {
                   alert("Booking failed: " + result.error);
             }
       };
+
+      useEffect(() => {
+            setEventItems([...events]);
+      }, [events]);
+
+      useEffect(() => {
+            fetchEvents();
+      }, []);
 
       return (
             <>
@@ -64,7 +44,7 @@ export default function Entertainment() {
 
                         {!selectedEvent ? (
                               <div className="space-y-4">
-                                    {events.map((event) => (
+                                    {eventItems.map((event) => (
                                           <div
                                                 key={event.id}
                                                 onClick={() =>
@@ -174,4 +154,6 @@ export default function Entertainment() {
                   </div>
             </>
       );
-}
+};
+
+export default Entertainment;

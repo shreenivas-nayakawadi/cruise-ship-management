@@ -4,6 +4,7 @@ import {
       setDoc,
       collection,
       serverTimestamp,
+      updateDoc,
       query,
       where,
       getDocs,
@@ -19,6 +20,7 @@ const VoyagerContext = createContext();
 export const VoyagerProvider = ({ children }) => {
       const { currentUser } = useAuth();
       const [loading, setLoading] = useState(false);
+      const [foodItems, setFoodItems] = useState([]);
 
       // ==================== FOOD ORDER ====================
       const placeFoodOrder = async (cart, specialInstructions = "") => {
@@ -76,10 +78,15 @@ export const VoyagerProvider = ({ children }) => {
                   const orderData = {
                         orderId,
                         userId: currentUser.uid,
+                        userEmail: currentUser.email || "",
                         items: cart.map((item) => ({
+                              id: item.id, // Include product ID for reference
                               name: item.name,
                               price: item.price,
-                              image: item.image,
+                              image: item.image || null, // Handle case where image might not exist
+                              description: item.description || "", // Include description
+                              category: item.category || "General", // Include category
+                              quantity: 1, // Default quantity, can be updated if needed
                         })),
                         total: cart.reduce((sum, item) => sum + item.price, 0),
                         status: "processing",
@@ -91,8 +98,15 @@ export const VoyagerProvider = ({ children }) => {
                                       )}`
                                     : "Gift Shop Pickup",
                         createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(), // Track when order was last updated
                   };
 
+                  // Validate cart isn't empty
+                  if (cart.length === 0) {
+                        throw new Error("Cannot place an empty order");
+                  }
+
+                  // Save order to giftOrders collection
                   await setDoc(orderRef, orderData);
 
                   // Update user's order history
@@ -101,14 +115,24 @@ export const VoyagerProvider = ({ children }) => {
                         {
                               type: "gift",
                               orderId,
+                              total: orderData.total,
+                              itemCount: cart.length,
                               createdAt: serverTimestamp(),
                         }
                   );
 
-                  return { success: true, orderId };
+                  return {
+                        success: true,
+                        orderId,
+                        orderData, // Return the complete order data if needed
+                  };
             } catch (error) {
                   console.error("Gift order error:", error);
-                  return { success: false, error: error.message };
+                  return {
+                        success: false,
+                        error: error.message,
+                        errorCode: error.code || "UNKNOWN_ERROR", // Include error code if available
+                  };
             } finally {
                   setLoading(false);
             }
@@ -121,7 +145,7 @@ export const VoyagerProvider = ({ children }) => {
                   const bookingId = uuidv4();
                   const bookingRef = doc(db, "movieBookings", bookingId);
 
-                  const showtime = movie.time; // 🔹 extracted here from movie object
+                  const showtime = movie.time;
                   const bookingData = {
                         bookingId,
                         userId: currentUser.uid,
@@ -135,7 +159,7 @@ export const VoyagerProvider = ({ children }) => {
                         createdAt: serverTimestamp(),
                   };
 
-                  // 🔸 Seat availability check
+                  // Seat availability check
                   const seatsQuery = query(
                         collection(db, "movieBookings"),
                         where("showtime", "==", showtime),
@@ -155,10 +179,26 @@ export const VoyagerProvider = ({ children }) => {
                         );
                   }
 
-                  // 🔹 Save booking
+                  // Check if enough seats are available
+                  const movieRef = doc(db, "movies", movie.id);
+                  const movieSnap = await getDoc(movieRef);
+                  const movieData = movieSnap.data();
+                  const currentAvailableSeats =
+                        movieData.availableSeats || movieData.seats;
+
+                  if (seats.length > currentAvailableSeats) {
+                        throw new Error("Not enough seats available.");
+                  }
+
+                  // Update movie available seats count
+                  await updateDoc(movieRef, {
+                        availableSeats: currentAvailableSeats - seats.length,
+                  });
+
+                  // Save booking
                   await setDoc(bookingRef, bookingData);
 
-                  // 🔹 Save in user history
+                  // Save in user history
                   await addDoc(
                         collection(db, "users", currentUser.uid, "bookings"),
                         {
@@ -465,8 +505,19 @@ export const VoyagerProvider = ({ children }) => {
                         return {
                               id: doc.id,
                               type: "Food",
-                              items: data.items?.map((item) => item.name) || [],
+                              items:
+                                    data.items?.map((item) => ({
+                                          name: item.name,
+                                          price: item.price,
+                                          quantity: item.quantity || 1,
+                                    })) || [],
+                              total: data.total || 0,
                               status: data.status || "Unknown",
+                              deliveryLocation:
+                                    data.deliveryLocation || "Unknown",
+                              specialInstructions:
+                                    data.specialInstructions || "",
+                              createdAt: data.createdAt?.toDate?.() || null,
                               time:
                                     data.createdAt
                                           ?.toDate?.()
@@ -474,7 +525,7 @@ export const VoyagerProvider = ({ children }) => {
                         };
                   });
 
-                  // Query giftOrders
+                  // Query giftOrders with the updated structure
                   const giftQuery = query(
                         collection(db, "giftOrders"),
                         where("userId", "==", currentUser.uid)
@@ -485,20 +536,185 @@ export const VoyagerProvider = ({ children }) => {
                         return {
                               id: doc.id,
                               type: "Gift",
-                              items: data.items?.map((item) => item.name) || [],
+                              items:
+                                    data.items?.map((item) => ({
+                                          id: item.id,
+                                          name: item.name,
+                                          price: item.price,
+                                          image: item.image,
+                                          description: item.description,
+                                          category: item.category,
+                                          quantity: item.quantity || 1,
+                                    })) || [],
+                              total: data.total || 0,
                               status: data.status || "Unknown",
+                              deliveryOption: data.deliveryOption || "cabin",
+                              deliveryLocation:
+                                    data.deliveryLocation || "Unknown",
+                              createdAt: data.createdAt?.toDate?.() || null,
                               time:
                                     data.createdAt
                                           ?.toDate?.()
                                           .toLocaleString() || "Unknown",
+                              updatedAt: data.updatedAt?.toDate?.() || null,
                         };
                   });
 
-                  const allOrders = [...foodOrders, ...giftOrders];
+                  // Combine and sort by date (newest first)
+                  const allOrders = [...foodOrders, ...giftOrders].sort(
+                        (a, b) => {
+                              const dateA = a.createdAt || new Date(0);
+                              const dateB = b.createdAt || new Date(0);
+                              return dateB - dateA;
+                        }
+                  );
+
                   return allOrders;
             } catch (error) {
-                  console.error("Error fetching direct orders:", error);
+                  console.error("Error fetching user orders:", error);
+                  return {
+                        error: true,
+                        message: error.message,
+                        code: error.code || "UNKNOWN_ERROR",
+                  };
+            } finally {
+                  setLoading(false);
+            }
+      };
+
+      // ==================== FETCH FOOD ITEMS ====================
+      const fetchFoodItems = async () => {
+            try {
+                  setLoading(true);
+                  const querySnapshot = await getDocs(
+                        collection(db, "foodItems")
+                  );
+                  const items = [];
+                  querySnapshot.forEach((doc) => {
+                        items.push({ id: doc.id, ...doc.data() });
+                  });
+                  setFoodItems(items);
+            } catch (error) {
+                  console.error("Error fetching food items:", error);
+            } finally {
+                  setLoading(false);
+            }
+      };
+
+      //========================= MOVIES =========================
+      const [movies, setMovies] = useState([]);
+
+      const fetchMovies = async () => {
+            try {
+                  setLoading(true);
+                  const querySnapshot = await getDocs(collection(db, "movies"));
+                  const moviesData = [];
+                  querySnapshot.forEach((doc) => {
+                        moviesData.push({ id: doc.id, ...doc.data() });
+                  });
+                  setMovies(moviesData);
+            } catch (error) {
+                  console.error("Error fetching movies:", error);
+            } finally {
+                  setLoading(false);
+            }
+      };
+
+      const getBookedSeats = async (movieId, showtime) => {
+            try {
+                  const bookingsQuery = query(
+                        collection(db, "movieBookings"),
+                        where("movieId", "==", movieId),
+                        where("showtime", "==", showtime)
+                  );
+                  const snapshot = await getDocs(bookingsQuery);
+                  return snapshot.docs.flatMap((doc) => doc.data().seats);
+            } catch (error) {
+                  console.error("Error fetching booked seats:", error);
                   return [];
+            }
+      };
+
+      // ==================== SPA SERVICES ====================
+      const [spaServices, setSpaServices] = useState([]);
+
+      const fetchSpaServices = async () => {
+            try {
+                  setLoading(true);
+                  const querySnapshot = await getDocs(
+                        collection(db, "spaServices")
+                  );
+                  const services = [];
+                  querySnapshot.forEach((doc) => {
+                        services.push({ id: doc.id, ...doc.data() });
+                  });
+                  setSpaServices(services);
+            } catch (error) {
+                  console.error("Error fetching spa services:", error);
+            } finally {
+                  setLoading(false);
+            }
+      };
+
+      //========================= ACTIVITIES=========================
+      const [activities, setActivities] = useState([]);
+
+      // Fetch all activities
+      const fetchActivities = async () => {
+            try {
+                  setLoading(true);
+                  const querySnapshot = await getDocs(
+                        collection(db, "activities")
+                  );
+                  const activitiesData = [];
+                  querySnapshot.forEach((doc) => {
+                        activitiesData.push({ id: doc.id, ...doc.data() });
+                  });
+                  setActivities(activitiesData);
+            } catch (error) {
+                  console.error("Error fetching activities:", error);
+            } finally {
+                  setLoading(false);
+            }
+      };
+
+      // ==================== EVENTS ====================
+      const [events, setEvents] = useState([]);
+
+      // Fetch all events
+      const fetchEvents = async () => {
+            try {
+                  setLoading(true);
+                  const querySnapshot = await getDocs(collection(db, "events"));
+                  const eventsData = [];
+                  querySnapshot.forEach((doc) => {
+                        eventsData.push({ id: doc.id, ...doc.data() });
+                  });
+                  setEvents(eventsData);
+            } catch (error) {
+                  console.error("Error fetching events:", error);
+            } finally {
+                  setLoading(false);
+            }
+      };
+
+      // ==================== GIFTS ====================
+      const [products, setProducts] = useState([]);
+
+      // Fetch all gift products
+      const fetchProducts = async () => {
+            try {
+                  setLoading(true);
+                  const querySnapshot = await getDocs(
+                        collection(db, "giftProducts")
+                  );
+                  const productsData = [];
+                  querySnapshot.forEach((doc) => {
+                        productsData.push({ id: doc.id, ...doc.data() });
+                  });
+                  setProducts(productsData);
+            } catch (error) {
+                  console.error("Error fetching products:", error);
             } finally {
                   setLoading(false);
             }
@@ -508,6 +724,8 @@ export const VoyagerProvider = ({ children }) => {
             <VoyagerContext.Provider
                   value={{
                         loading,
+                        foodItems,
+                        fetchFoodItems,
                         placeFoodOrder,
                         placeGiftOrder,
                         bookMovieTickets,
@@ -516,6 +734,17 @@ export const VoyagerProvider = ({ children }) => {
                         bookEntertainment,
                         getUserBookings,
                         getUserOrders,
+                        fetchMovies,
+                        movies,
+                        getBookedSeats,
+                        spaServices,
+                        fetchSpaServices,
+                        activities,
+                        fetchActivities,
+                        events,
+                        fetchEvents,
+                        products,
+                        fetchProducts,
                   }}
             >
                   {children}

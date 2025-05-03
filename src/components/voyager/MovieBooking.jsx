@@ -1,24 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiFilm, FiClock, FiCheck } from "react-icons/fi";
 import { useVoyagerContext } from "../../context/VoyagerContext";
 import VoyagerNavbar from "./VoyagerNavbar";
 
-export default function MovieBooking() {
-      const [movies] = useState([
-            { id: 1, title: "Ocean Adventure", time: "18:00", seats: 45 },
-            {
-                  id: 2,
-                  title: "Pirates of the Caribbean",
-                  time: "20:30",
-                  seats: 32,
-            },
-            { id: 3, title: "The Titanic Story", time: "22:00", seats: 28 },
-      ]);
+const MovieBooking = () => {
+      const [movieItems, setMovieItems] = useState([]);
+
+      const [bookedSeats, setBookedSeats] = useState([]);
       const [selectedMovie, setSelectedMovie] = useState(null);
       const [selectedSeats, setSelectedSeats] = useState([]);
       const [bookingComplete, setBookingComplete] = useState(false);
 
-      const { bookMovieTickets, loading } = useVoyagerContext();
+      const { bookMovieTickets, loading, fetchMovies, movies, getBookedSeats } =
+            useVoyagerContext();
 
       const toggleSeat = (seatNumber) => {
             if (selectedSeats.includes(seatNumber)) {
@@ -30,18 +24,34 @@ export default function MovieBooking() {
             }
       };
 
+      const seatsbooked = async (movieId, showtime) => {
+            const booked = await getBookedSeats(movieId, showtime);
+            console.log("Booked seats:", booked);
+            setBookedSeats(booked);
+      };
+
       const bookTickets = async () => {
-            const result = await bookMovieTickets(selectedMovie, selectedSeats); // optionally use movie.time if needed separately
+            const result = await bookMovieTickets(selectedMovie, selectedSeats);
             if (result.success) {
                   console.log("Movie booking confirmed:", result.bookingId);
                   setBookingComplete(true);
                   setSelectedSeats([]);
+                  // Refresh movies data after successful booking
+                  await fetchMovies();
                   setSelectedMovie(null);
                   setTimeout(() => setBookingComplete(false), 3000);
             } else {
                   alert("Booking failed: " + result.error);
             }
       };
+
+      useEffect(() => {
+            setMovieItems([...movies]);
+      }, [movies]);
+
+      useEffect(() => {
+            fetchMovies();
+      }, []);
 
       return (
             <>
@@ -64,12 +74,16 @@ export default function MovieBooking() {
 
                         {!selectedMovie ? (
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {movies.map((movie) => (
+                                    {movieItems.map((movie) => (
                                           <div
                                                 key={movie.id}
-                                                onClick={() =>
-                                                      setSelectedMovie(movie)
-                                                }
+                                                onClick={() => {
+                                                      setSelectedMovie(movie);
+                                                      seatsbooked(
+                                                            movie.id,
+                                                            movie.time
+                                                      );
+                                                }}
                                                 className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:border-blue-300 cursor-pointer"
                                           >
                                                 <h3 className="font-medium text-gray-800">
@@ -84,7 +98,9 @@ export default function MovieBooking() {
                                                             Available seats:{" "}
                                                       </span>
                                                       <span className="font-medium">
-                                                            {movie.seats}
+                                                            {
+                                                                  movie.availableSeats
+                                                            }
                                                       </span>
                                                 </div>
                                           </div>
@@ -98,9 +114,10 @@ export default function MovieBooking() {
                                                 {selectedMovie.time}
                                           </h2>
                                           <button
-                                                onClick={() =>
-                                                      setSelectedMovie(null)
-                                                }
+                                                onClick={() => {
+                                                      setSelectedMovie(null);
+                                                      setBookedSeats([]);
+                                                }}
                                                 className="text-sm text-blue-600 hover:underline"
                                           >
                                                 Back to movies
@@ -113,7 +130,9 @@ export default function MovieBooking() {
                                           </h3>
                                           <div className="grid grid-cols-10 gap-2">
                                                 {Array.from(
-                                                      { length: 50 },
+                                                      {
+                                                            length: selectedMovie.seats,
+                                                      }, // Total theater capacity
                                                       (_, i) => i + 1
                                                 ).map((seat) => (
                                                       <button
@@ -123,18 +142,17 @@ export default function MovieBooking() {
                                                                         seat
                                                                   )
                                                             }
-                                                            disabled={
-                                                                  seat >
-                                                                  selectedMovie.seats
-                                                            }
+                                                            disabled={bookedSeats.includes(
+                                                                  seat
+                                                            )} // Only disable actually booked seats
                                                             className={`w-8 h-8 rounded flex items-center justify-center text-sm
-                    ${
-                          selectedSeats.includes(seat)
-                                ? "bg-blue-600 text-white"
-                                : seat > selectedMovie.seats
-                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                : "bg-gray-100 hover:bg-gray-200"
-                    }`}
+          ${
+                selectedSeats.includes(seat)
+                      ? "bg-blue-600 text-white"
+                      : bookedSeats.includes(seat)
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-gray-100 hover:bg-gray-200"
+          }`}
                                                       >
                                                             {seat}
                                                       </button>
@@ -177,4 +195,6 @@ export default function MovieBooking() {
                   </div>
             </>
       );
-}
+};
+
+export default MovieBooking;

@@ -1,39 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiActivity, FiCalendar, FiMapPin, FiClock } from "react-icons/fi";
 import { useVoyagerContext } from "../../context/VoyagerContext";
 import VoyagerNavbar from "./VoyagerNavbar";
 
-export default function Activities() {
-      const [activities] = useState([
-            {
-                  id: 1,
-                  name: "Poolside Zumba",
-                  time: "10:00 - 11:00",
-                  location: "Main Pool Deck",
-                  date: "Today",
-                  description: "Fun dance workout with our fitness instructor",
-            },
-            {
-                  id: 2,
-                  name: "Wine Tasting",
-                  time: "15:00 - 16:30",
-                  location: "Vineyard Lounge",
-                  date: "Today",
-                  description: "Sample premium wines from around the world",
-            },
-            {
-                  id: 3,
-                  name: "Karaoke Night",
-                  time: "20:00 - 23:00",
-                  location: "Grand Lounge",
-                  date: "Tomorrow",
-                  description:
-                        "Show off your singing talent with our live band",
-            },
-      ]);
+const Activities = () => {
+      const [activityItems, setActivityItems] = useState([]);
       const [selectedActivity, setSelectedActivity] = useState(null);
       const [bookingConfirmed, setBookingConfirmed] = useState(false);
-      const { bookActivity, loading } = useVoyagerContext();
+      const { bookActivity, loading, activities, fetchActivities } =
+            useVoyagerContext();
 
       const handleBooking = async () => {
             const result = await bookActivity(selectedActivity);
@@ -45,6 +20,14 @@ export default function Activities() {
                   alert("Booking failed: " + result.error);
             }
       };
+
+      useEffect(() => {
+            setActivityItems([...activities]);
+      }, [activities]);
+
+      useEffect(() => {
+            fetchActivities();
+      }, []);
 
       return (
             <>
@@ -59,7 +42,7 @@ export default function Activities() {
 
                         {!selectedActivity ? (
                               <div className="space-y-4">
-                                    {activities.map((activity) => (
+                                    {activityItems.map((activity) => (
                                           <div
                                                 key={activity.id}
                                                 onClick={() =>
@@ -165,4 +148,6 @@ export default function Activities() {
                   </div>
             </>
       );
-}
+};
+
+export default Activities;

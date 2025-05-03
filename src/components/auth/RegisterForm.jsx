@@ -8,7 +8,7 @@ const RegisterForm = () => {
       const [role, setRole] = useState("voyager");
       const [error, setError] = useState("");
       const [loading, setLoading] = useState(false);
-      const { register,currentUser } = useAuth();
+      const { register, currentUser } = useAuth();
       const navigate = useNavigate();
 
       const handleSubmit = async (e) => {
@@ -16,8 +16,8 @@ const RegisterForm = () => {
             try {
                   setError("");
                   setLoading(true);
-                  await register(email, password, role);
-                  navigate(`/${currentUser.role}Dashboard`);
+                  const user = await register(email, password, role);
+                  navigate(`/${user.role}/dashboard`);
             } catch (err) {
                   setError(err.message);
                   setLoading(false);

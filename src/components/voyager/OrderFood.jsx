@@ -1,33 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiCoffee, FiCheckCircle } from "react-icons/fi";
 import { useVoyagerContext } from "../../context/VoyagerContext.jsx";
 import VoyagerNavbar from "./VoyagerNavbar.jsx";
 
-export default function OrderFood() {
-      const [menu] = useState([
-            {
-                  id: 1,
-                  name: "Seafood Platter",
-                  category: "Dinner",
-                  price: 24.99,
-            },
-            { id: 2, name: "Steak Dinner", category: "Dinner", price: 29.99 },
-            {
-                  id: 3,
-                  name: "Vegetarian Pasta",
-                  category: "Dinner",
-                  price: 18.99,
-            },
-            {
-                  id: 4,
-                  name: "Breakfast Buffet",
-                  category: "Breakfast",
-                  price: 14.99,
-            },
-      ]);
+const OrderFood = () => {
       const [cart, setCart] = useState([]);
       const [orderPlaced, setOrderPlaced] = useState(false);
-      const { placeFoodOrder, loading } = useVoyagerContext(); // Assuming this function is provided in the context
+      const { placeFoodOrder, loading, foodItems, fetchFoodItems } =
+            useVoyagerContext();
+      const [menu, setMenu] = useState([]);
 
       const addToCart = (item) => {
             setCart([...cart, item]);
@@ -46,6 +27,14 @@ export default function OrderFood() {
                   alert("Error placing order: " + result.error);
             }
       };
+
+      useEffect(() => {
+            setMenu([...foodItems]);
+      }, [foodItems]);
+
+      useEffect(() => {
+            fetchFoodItems();
+      }, []);
 
       return (
             <>
@@ -174,4 +163,6 @@ export default function OrderFood() {
                   </div>
             </>
       );
-}
+};
+
+export default OrderFood;

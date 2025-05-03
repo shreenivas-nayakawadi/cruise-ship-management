@@ -7,7 +7,7 @@ const LoginForm = () => {
       const [password, setPassword] = useState("");
       const [error, setError] = useState("");
       const [loading, setLoading] = useState(false);
-      const { login,currentUser } = useAuth();
+      const { login, currentUser } = useAuth();
       const navigate = useNavigate();
 
       const handleSubmit = async (e) => {
@@ -15,8 +15,8 @@ const LoginForm = () => {
             try {
                   setError("");
                   setLoading(true);
-                  await login(email, password);
-                  navigate(`/${currentUser.role}Dashboard`);
+                  const user = await login(email, password); // get returned user object
+                  navigate(`/${user.role}/dashboard`);
             } catch (err) {
                   setError(err.message);
                   setLoading(false);

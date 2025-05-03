@@ -1,26 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiSmile, FiCalendar, FiClock, FiCheck } from "react-icons/fi";
 import { useVoyagerContext } from "../../context/VoyagerContext";
 import VoyagerNavbar from "./VoyagerNavbar";
 
-export default function SpaBooking() {
-      const [services] = useState([
-            { id: 1, name: "Swedish Massage", duration: "60 min", price: 99 },
-            {
-                  id: 2,
-                  name: "Hot Stone Therapy",
-                  duration: "75 min",
-                  price: 129,
-            },
-            { id: 3, name: "Aromatherapy", duration: "45 min", price: 79 },
-            { id: 4, name: "Couples Massage", duration: "90 min", price: 199 },
-      ]);
+const SpaBooking = () => {
+      const [services, setServices] = useState([]);
       const [selectedService, setSelectedService] = useState(null);
       const [selectedDate, setSelectedDate] = useState("");
       const [selectedTime, setSelectedTime] = useState("");
       const [bookingComplete, setBookingComplete] = useState(false);
 
-      const { bookSpaAppointment, loading } = useVoyagerContext();
+      const { bookSpaAppointment, loading, spaServices, fetchSpaServices } =
+            useVoyagerContext();
 
       const availableTimes = ["09:00", "11:00", "13:00", "15:00", "17:00"];
 
@@ -38,6 +29,14 @@ export default function SpaBooking() {
                   alert("Booking failed: " + result.error);
             }
       };
+
+      useEffect(() => {
+            setServices([...spaServices]);
+      }, [spaServices]);
+
+      useEffect(() => {
+            fetchSpaServices();
+      }, []);
 
       return (
             <>
@@ -219,4 +218,6 @@ export default function SpaBooking() {
                   </div>
             </>
       );
-}
+};
+
+export default SpaBooking;

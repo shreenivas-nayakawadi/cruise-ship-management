@@ -11,7 +11,7 @@ import {
       FiX,
 } from "react-icons/fi";
 
-export default function VoyagerNavbar() {
+const VoyagerNavbar = () => {
       const { currentUser, logout } = useAuth();
       const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
       const navigate = useNavigate();
@@ -29,7 +29,7 @@ export default function VoyagerNavbar() {
       const navItems = [
             {
                   name: "Dashboard",
-                  path: "/voyagerDashboard",
+                  path: "/voyager/dashboard",
                   icon: <FiHome className="mr-2" />,
             },
             {
@@ -76,7 +76,7 @@ export default function VoyagerNavbar() {
                                     >
                                           <img
                                                 className="h-8 w-auto"
-                                                src="src\assets\logo.png" // Replace with your cruise logo
+                                                src="src\assets\logo.png"
                                           />
                                           <span className="ml-2 text-xl font-bold text-blue-600 hidden md:block">
                                                 Cruise Voyager
@@ -204,4 +204,6 @@ export default function VoyagerNavbar() {
                   </div>
             </nav>
       );
-}
+};
+
+export default VoyagerNavbar;
