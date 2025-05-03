@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../context/AuthContext";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
 import {
       FiHome,
@@ -11,10 +11,11 @@ import {
       FiX,
 } from "react-icons/fi";
 
-export default function VoyagerNavbar() {
+export default function AdminNavbar() {
       const { currentUser, logout } = useAuth();
       const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
       const navigate = useNavigate();
+      const location = useLocation();
 
       const handleLogout = async () => {
             try {
@@ -28,23 +29,38 @@ export default function VoyagerNavbar() {
       const navItems = [
             {
                   name: "Dashboard",
-                  path: "/voyager/dashboard",
+                  path: "/adminDashboard",
                   icon: <FiHome className="mr-2" />,
             },
             {
-                  name: "Bookings",
-                  path: "/voyager/bookings",
-                  icon: <FiCalendar className="mr-2" />,
-            },
-            {
-                  name: "Orders",
-                  path: "/voyager/orders",
+                  name: "Food",
+                  path: "/admin/food",
                   icon: <FiShoppingCart className="mr-2" />,
             },
             {
-                  name: "Profile",
-                  path: "/voyager/profile",
-                  icon: <FiUser className="mr-2" />,
+                  name: "Gift Shop",
+                  path: "/admin/gift-shop",
+                  icon: <FiShoppingCart className="mr-2" />,
+            },
+            {
+                  name: "Movies",
+                  path: "/admin/movies",
+                  icon: <FiCalendar className="mr-2" />,
+            },
+            {
+                  name: "Spa",
+                  path: "/admin/spa",
+                  icon: <FiCalendar className="mr-2" />,
+            },
+            {
+                  name: "Activities",
+                  path: "/admin/activities",
+                  icon: <FiCalendar className="mr-2" />,
+            },
+            {
+                  name: "Entertainment",
+                  path: "/admin/entertainment",
+                  icon: <FiCalendar className="mr-2" />,
             },
       ];
 
@@ -53,58 +69,70 @@ export default function VoyagerNavbar() {
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between h-16">
                               {/* Logo and desktop menu */}
-                              <div className="flex items-center">
+                              <div className="flex items-center justify-between">
                                     <Link
                                           to="/voyager/dashboard"
                                           className="flex-shrink-0 flex items-center"
                                     >
-                                          {/* <img
+                                          <img
                                                 className="h-8 w-auto"
-                                                src="/logo.png" // Replace with your cruise logo
-                                                alt="Cruise Ship Management"
-                                          /> */}
+                                                src="src\assets\logo.png" // Replace with your cruise logo
+                                          />
                                           <span className="ml-2 text-xl font-bold text-blue-600 hidden md:block">
-                                                Cruise Voyager
+                                                Cruise Admin
                                           </span>
                                     </Link>
+                              </div>
+
+                              {/* User profile and mobile menu button */}
+                              <div className="flex items-center gap-10">
                                     <div className="hidden md:ml-6 md:flex md:space-x-8">
                                           {navItems.map((item) => (
                                                 <Link
                                                       key={item.name}
                                                       to={item.path}
-                                                      className="border-transparent text-gray-500 hover:border-blue-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                                                      className={`${
+                                                            location.pathname ===
+                                                            item.path
+                                                                  ? "border-blue-500 text-blue-600"
+                                                                  : "border-transparent text-gray-500 hover:border-blue-500 hover:text-gray-700"
+                                                      } inline-flex items-center px-1 py-1 border-b-2 text-xs font-medium`}
                                                 >
                                                       {item.icon}
                                                       {item.name}
                                                 </Link>
                                           ))}
                                     </div>
-                              </div>
+                                    <div className=" hidden md:flex md:items-center relative">
+                                          <button
+                                                onClick={() =>
+                                                      setMobileMenuOpen(
+                                                            !mobileMenuOpen
+                                                      )
+                                                }
+                                                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+                                          >
+                                                <FiUser className="text-xl" />
+                                          </button>
+                                          {mobileMenuOpen && (
+                                                <div className="absolute right-10 top-10 mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg z-50 p-4 text-sm">
+                                                      <div className="mb-2 overflow-clip">
+                                                            <strong>
+                                                                  Email:
+                                                            </strong>{" "}
+                                                            {currentUser?.email}
+                                                      </div>
 
-                              {/* User profile and mobile menu button */}
-                              <div className="flex items-center">
-                                    <div className="hidden md:ml-4 md:flex md:items-center">
-                                          <div className="ml-3 relative">
-                                                <div className="flex items-center space-x-4">
-                                                      <span className="text-gray-600 text-sm">
-                                                            Welcome,{" "}
-                                                            {
-                                                                  currentUser?.email?.split(
-                                                                        "@"
-                                                                  )[0]
-                                                            }
-                                                      </span>
                                                       <button
                                                             onClick={
                                                                   handleLogout
                                                             }
-                                                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+                                                            className="mt-2 w-full text-center bg-red-500 hover:bg-red-600 text-white py-1 rounded"
                                                       >
-                                                            <FiLogOut className="mr-2" />
                                                             Logout
                                                       </button>
                                                 </div>
-                                          </div>
+                                          )}
                                     </div>
                                     {/* Mobile menu button */}
                                     <div className="-mr-2 flex items-center md:hidden">
