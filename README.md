@@ -47,7 +47,7 @@ This project is a comprehensive Cruise Ship Management System that allows differ
    ```bash
    git clone https://github.com/shreenivas-nayakawadi/cruise-ship-management.git
    cd cruise-ship-management
-````
+   ```
 
 2. Install dependencies:
 
