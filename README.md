@@ -1,8 +1,3 @@
-# React + Vite
-
-Here's your provided content formatted properly as a `README.md` file:
-
-````markdown
 # Cruise Ship Management System
 
 ## Overview
