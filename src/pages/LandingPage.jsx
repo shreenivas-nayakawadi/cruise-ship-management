@@ -162,31 +162,6 @@ const LandingPage = () => {
                   {/* Footer - Not Full Screen */}
                   <footer className="bg-blue-600 text-white py-12">
                         <div className="container mx-auto px-4">
-                              <div className="flex flex-col md:flex-row justify-between items-center">
-                                    <div className="text-xl font-bold mb-4 md:mb-0">
-                                          Ocean Vista Cruises
-                                    </div>
-                                    <div className="flex space-x-6">
-                                          <Link
-                                                to="/privacy"
-                                                className="hover:text-blue-200 transition duration-300"
-                                          >
-                                                Privacy
-                                          </Link>
-                                          <Link
-                                                to="/terms"
-                                                className="hover:text-blue-200 transition duration-300"
-                                          >
-                                                Terms
-                                          </Link>
-                                          <Link
-                                                to="/contact"
-                                                className="hover:text-blue-200 transition duration-300"
-                                          >
-                                                Contact
-                                          </Link>
-                                    </div>
-                              </div>
                               <div className="mt-6 text-center text-sm">
                                     &copy; {new Date().getFullYear()} Ocean
                                     Vista Cruises. All rights reserved.
