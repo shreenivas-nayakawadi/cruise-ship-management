@@ -110,6 +110,7 @@ export const AdminProvider = ({ children }) => {
             }
       };
 
+      // Add a new movie (with price)
       const addMovie = async (movie) => {
             try {
                   setLoading(true);
@@ -119,6 +120,7 @@ export const AdminProvider = ({ children }) => {
                         time: movie.time,
                         seats: movie.seats,
                         availableSeats: movie.seats,
+                        price: movie.price, // ✅ New field
                         createdAt: new Date().toISOString(),
                   });
                   await fetchMovies();
@@ -131,6 +133,7 @@ export const AdminProvider = ({ children }) => {
             }
       };
 
+      // Update an existing movie
       const updateMovie = async (id, updatedData) => {
             try {
                   setLoading(true);
@@ -145,6 +148,7 @@ export const AdminProvider = ({ children }) => {
             }
       };
 
+      // Delete a movie
       const deleteMovie = async (id) => {
             try {
                   setLoading(true);
@@ -255,7 +259,7 @@ export const AdminProvider = ({ children }) => {
       //========================= ACTIVITIES=========================
       const [activities, setActivities] = useState([]);
 
-      // Fetch all activities
+      // Fetch activities
       const fetchActivities = async () => {
             try {
                   setLoading(true);
@@ -274,7 +278,7 @@ export const AdminProvider = ({ children }) => {
             }
       };
 
-      // Add new activity
+      // Add new activity (includes price)
       const addActivity = async (activity) => {
             try {
                   setLoading(true);
@@ -284,6 +288,9 @@ export const AdminProvider = ({ children }) => {
                         time: activity.time,
                         location: activity.location,
                         date: activity.date,
+                        maxParticipants: activity.maxParticipants,
+                        availableSlots: activity.maxParticipants,
+                        price: activity.price, // added price
                         description: activity.description,
                         createdAt: new Date().toISOString(),
                   });
@@ -297,12 +304,15 @@ export const AdminProvider = ({ children }) => {
             }
       };
 
-      // Update activity
+      // Update activity (includes price)
       const updateActivity = async (id, updatedData) => {
             try {
                   setLoading(true);
                   const activityRef = doc(db, "activities", id);
-                  await updateDoc(activityRef, updatedData);
+                  await updateDoc(activityRef, {
+                        ...updatedData,
+                        price: updatedData.price, // ensure price is included
+                  });
                   await fetchActivities();
                   return { success: true };
             } catch (error) {
@@ -332,8 +342,69 @@ export const AdminProvider = ({ children }) => {
             fetchActivities();
       }, []);
 
-      //=========================EVENTS=========================
+      //=========================Entertainment=========================
       // Add to your AdminContext.jsx
+      // const [events, setEvents] = useState([]);
+
+      // // Fetch all events
+      // const fetchEvents = async () => {
+      //       try {
+      //             setLoading(true);
+      //             const querySnapshot = await getDocs(collection(db, "events"));
+      //             const eventsData = [];
+      //             querySnapshot.forEach((doc) => {
+      //                   eventsData.push({ id: doc.id, ...doc.data() });
+      //             });
+      //             setEvents(eventsData);
+      //       } catch (error) {
+      //             console.error("Error fetching events:", error);
+      //       } finally {
+      //             setLoading(false);
+      //       }
+      // };
+
+      // // Add new event
+      // const addEvent = async (event) => {
+      //       try {
+      //             setLoading(true);
+      //             const newEventRef = doc(collection(db, "events"));
+      //             await setDoc(newEventRef, {
+      //                   title: event.title,
+      //                   performer: event.performer,
+      //                   time: event.time,
+      //                   location: event.location,
+      //                   date: event.date,
+      //                   description: event.description,
+      //                   createdAt: new Date().toISOString(),
+      //             });
+      //             await fetchEvents();
+      //             return { success: true };
+      //       } catch (error) {
+      //             console.error("Error adding event:", error);
+      //             return { success: false, error: error.message };
+      //       } finally {
+      //             setLoading(false);
+      //       }
+      // };
+
+      // // Update event
+      // const updateEvent = async (id, updatedData) => {
+      //       try {
+      //             setLoading(true);
+      //             const eventRef = doc(db, "events", id);
+      //             await updateDoc(eventRef, updatedData);
+      //             await fetchEvents();
+      //             return { success: true };
+      //       } catch (error) {
+      //             console.error("Error updating event:", error);
+      //             return { success: false, error: error.message };
+      //       } finally {
+      //             setLoading(false);
+      //       }
+      // };
+
+      
+
       const [events, setEvents] = useState([]);
 
       // Fetch all events
@@ -353,7 +424,7 @@ export const AdminProvider = ({ children }) => {
             }
       };
 
-      // Add new event
+      // Add new event with price
       const addEvent = async (event) => {
             try {
                   setLoading(true);
@@ -365,6 +436,7 @@ export const AdminProvider = ({ children }) => {
                         location: event.location,
                         date: event.date,
                         description: event.description,
+                        price: parseFloat(event.price), // Added price
                         createdAt: new Date().toISOString(),
                   });
                   await fetchEvents();
@@ -377,12 +449,15 @@ export const AdminProvider = ({ children }) => {
             }
       };
 
-      // Update event
+      // Update event with price
       const updateEvent = async (id, updatedData) => {
             try {
                   setLoading(true);
                   const eventRef = doc(db, "events", id);
-                  await updateDoc(eventRef, updatedData);
+                  await updateDoc(eventRef, {
+                        ...updatedData,
+                        price: parseFloat(updatedData.price), // Ensure price is included and parsed
+                  });
                   await fetchEvents();
                   return { success: true };
             } catch (error) {

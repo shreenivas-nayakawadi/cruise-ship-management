@@ -80,7 +80,7 @@ const GiftShop=()=> {
                                                             </p>
                                                             <div className="flex justify-between items-center mt-4">
                                                                   <span className="font-medium text-blue-600">
-                                                                        $
+                                                                        ₹
                                                                         {product.price.toFixed(
                                                                               2
                                                                         )}
@@ -136,7 +136,7 @@ const GiftShop=()=> {
                                                                         </div>
                                                                         <div className="flex items-center">
                                                                               <span className="font-medium mr-4">
-                                                                                    $
+                                                                                    ₹
                                                                                     {item.price.toFixed(
                                                                                           2
                                                                                     )}
@@ -158,7 +158,7 @@ const GiftShop=()=> {
                                                 </div>
                                                 <div className="mt-4 flex justify-between items-center">
                                                       <span className="font-bold">
-                                                            Total: $
+                                                            Total: ₹
                                                             {cart
                                                                   .reduce(
                                                                         (

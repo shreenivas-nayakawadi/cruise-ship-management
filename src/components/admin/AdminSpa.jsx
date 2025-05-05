@@ -124,7 +124,7 @@ const AdminSpa = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Price ($)
+                                    Price (₹)
                                 </label>
                                 <input
                                     type="number"
@@ -263,7 +263,7 @@ const AdminSpa = () => {
                                                     {service.duration}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    ${service.price.toFixed(2)}
+                                                    ₹{service.price.toFixed(2)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <div className="flex space-x-2">

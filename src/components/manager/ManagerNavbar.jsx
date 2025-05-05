@@ -3,15 +3,19 @@ import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
 import {
       FiHome,
-      FiCalendar,
-      FiShoppingCart,
       FiUser,
       FiLogOut,
       FiMenu,
       FiX,
+      FiCoffee,
+      FiGift,
+      FiFilm,
+      FiSmile,
+      FiActivity,
+      FiMusic,
 } from "react-icons/fi";
 
-const VoyagerNavbar = () => {
+const ManagerNavbar = () => {
       const { currentUser, logout } = useAuth();
       const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
       const navigate = useNavigate();
@@ -29,38 +33,28 @@ const VoyagerNavbar = () => {
       const navItems = [
             {
                   name: "Dashboard",
-                  path: "/voyager/dashboard",
+                  path: "/manager/dashboard", // Updated to consistent path structure
                   icon: <FiHome className="mr-2" />,
             },
             {
-                  name: "Order Food",
-                  path: "/voyager/order-food",
-                  icon: <FiShoppingCart className="mr-2" />,
+                  name: "Movie Bookings",
+                  path: "/manager/movie",
+                  icon: <FiFilm className="mr-2" />, // Movie-specific icon
             },
             {
-                  name: "Gift Shop",
-                  path: "/voyager/gift-shop",
-                  icon: <FiShoppingCart className="mr-2" />,
-            },
-            {
-                  name: "Movies",
-                  path: "/voyager/movies",
-                  icon: <FiCalendar className="mr-2" />,
-            },
-            {
-                  name: "Spa",
-                  path: "/voyager/spa",
-                  icon: <FiCalendar className="mr-2" />,
+                  name: "Spa Bookings",
+                  path: "/manager/spa",
+                  icon: <FiSmile className="mr-2" />, // Spa-related icon
             },
             {
                   name: "Activities",
-                  path: "/voyager/activities",
-                  icon: <FiCalendar className="mr-2" />,
+                  path: "/manager/activities",
+                  icon: <FiActivity className="mr-2" />, // Activities icon
             },
             {
                   name: "Entertainment",
-                  path: "/voyager/entertainment",
-                  icon: <FiCalendar className="mr-2" />,
+                  path: "/manager/entertainment",
+                  icon: <FiMusic className="mr-2" />, // Entertainment icon
             },
       ];
 
@@ -79,7 +73,7 @@ const VoyagerNavbar = () => {
                                                 src="/logo.png"
                                           />
                                           <span className="ml-2 text-xl font-bold text-blue-600 hidden md:block">
-                                                Cruise Voyager
+                                                Cruise Manager
                                           </span>
                                     </Link>
                               </div>
@@ -205,5 +199,4 @@ const VoyagerNavbar = () => {
             </nav>
       );
 };
-
-export default VoyagerNavbar;
+export default ManagerNavbar;

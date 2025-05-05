@@ -38,7 +38,7 @@ export const VoyagerProvider = ({ children }) => {
                               price: item.price,
                               quantity: 1,
                         })),
-                        total: cart.reduce((sum, item) => sum + item.price, 0),
+                        price: cart.reduce((sum, item) => sum + item.price, 0),
                         status: "preparing",
                         deliveryLocation: `Cabin ${Math.floor(
                               1000 + Math.random() * 9000
@@ -88,7 +88,7 @@ export const VoyagerProvider = ({ children }) => {
                               category: item.category || "General", // Include category
                               quantity: 1, // Default quantity, can be updated if needed
                         })),
-                        total: cart.reduce((sum, item) => sum + item.price, 0),
+                        price: cart.reduce((sum, item) => sum + item.price, 0),
                         status: "processing",
                         deliveryOption,
                         deliveryLocation:
@@ -115,7 +115,7 @@ export const VoyagerProvider = ({ children }) => {
                         {
                               type: "gift",
                               orderId,
-                              total: orderData.total,
+                              price: orderData.price,
                               itemCount: cart.length,
                               createdAt: serverTimestamp(),
                         }
@@ -153,7 +153,7 @@ export const VoyagerProvider = ({ children }) => {
                         movieTitle: movie.title,
                         showtime,
                         seats,
-                        total: seats.length * 8.99,
+                        price: seats.length * movie.price,
                         theater: "Deck 5 Cinema",
                         status: "confirmed",
                         createdAt: serverTimestamp(),
@@ -248,7 +248,7 @@ export const VoyagerProvider = ({ children }) => {
                         duration: service.duration,
                         date,
                         time,
-                        total: service.price,
+                        price: service.price,
                         status: "confirmed",
                         createdAt: serverTimestamp(),
                   };
@@ -276,11 +276,15 @@ export const VoyagerProvider = ({ children }) => {
       };
 
       // ==================== ACTIVITY BOOKING ====================
+
       const bookActivity = async (activity, participants = 1) => {
             try {
                   setLoading(true);
 
-                  // Check if this user has already booked the activity
+                  if (participants > activity.availableSlots) {
+                        throw new Error("Not enough slots available.");
+                  }
+
                   const bookingsRef = collection(db, "activityBookings");
                   const q = query(
                         bookingsRef,
@@ -294,6 +298,8 @@ export const VoyagerProvider = ({ children }) => {
                   }
 
                   const bookingId = uuidv4();
+                  const totalPrice = activity.price * participants;
+
                   const bookingData = {
                         bookingId,
                         userId: currentUser.uid,
@@ -304,16 +310,18 @@ export const VoyagerProvider = ({ children }) => {
                         participants,
                         location: activity.location,
                         status: "confirmed",
+                        price: totalPrice,
+                        pricePerParticipant: activity.price,
                         createdAt: serverTimestamp(),
                   };
 
-                  // Save booking to central bookings collection
+                  // Save booking
                   await setDoc(
                         doc(db, "activityBookings", bookingId),
                         bookingData
                   );
 
-                  // Save reference in user's personal bookings
+                  // Add reference to user bookings
                   await addDoc(
                         collection(db, "users", currentUser.uid, "bookings"),
                         {
@@ -322,6 +330,12 @@ export const VoyagerProvider = ({ children }) => {
                               createdAt: serverTimestamp(),
                         }
                   );
+
+                  // Decrease available slots
+                  const activityRef = doc(db, "activities", activity.id);
+                  await updateDoc(activityRef, {
+                        availableSlots: activity.availableSlots - participants,
+                  });
 
                   return { success: true, bookingId };
             } catch (error) {
@@ -333,12 +347,12 @@ export const VoyagerProvider = ({ children }) => {
       };
 
       // ==================== ENTERTAINMENT BOOKING ====================
+
       const bookEntertainment = async (event, seats = 2) => {
             try {
                   setLoading(true);
                   const bookingId = uuidv4();
 
-                  // Check if already booked
                   const q = query(
                         collection(db, "entertainmentBookings"),
                         where("userId", "==", currentUser.uid),
@@ -364,14 +378,13 @@ export const VoyagerProvider = ({ children }) => {
                         time: event.time,
                         seats,
                         section: "general",
-                        total: seats * 15.99,
+                        price: seats * event.price, // dynamically use event.price
                         status: "confirmed",
                         createdAt: serverTimestamp(),
                   };
 
                   await setDoc(bookingRef, bookingData);
 
-                  // User bookings
                   await addDoc(
                         collection(db, "users", currentUser.uid, "bookings"),
                         {
@@ -392,7 +405,8 @@ export const VoyagerProvider = ({ children }) => {
 
       // ==================== GET USER BOOKINGS ====================
       const getUserBookings = async () => {
-            if (!currentUser) return [];
+            if (!currentUser)
+                  return { success: false, error: "No user logged in" };
 
             try {
                   setLoading(true);
@@ -403,18 +417,20 @@ export const VoyagerProvider = ({ children }) => {
                         where("userId", "==", currentUser.uid)
                   );
                   const activitySnap = await getDocs(activityQuery);
-                  // Map through the documents and extract relevant data
-                  const activityBookings = activitySnap.docs.map((doc) => {
-                        const data = doc.data();
-                        return {
-                              id: doc.id,
-                              type: "Activity",
-                              name: data.activityName,
-                              date: data.date,
-                              time: data.time,
-                              status: data.status || "Unknown",
-                        };
-                  });
+                  const activityBookings = activitySnap.docs.map((doc) => ({
+                        id: doc.id,
+                        bookingId: doc.data().bookingId,
+                        type: "activity",
+                        activityId: doc.data().activityId,
+                        name: doc.data().activityName,
+                        date: doc.data().date,
+                        time: doc.data().time,
+                        participants: doc.data().participants || 1,
+                        location: doc.data().location,
+                        price: doc.data().price,
+                        status: doc.data().status || "confirmed",
+                        createdAt: doc.data().createdAt?.toDate() || null,
+                  }));
 
                   // ========== Spa Bookings ==========
                   const spaQuery = query(
@@ -422,17 +438,19 @@ export const VoyagerProvider = ({ children }) => {
                         where("userId", "==", currentUser.uid)
                   );
                   const spaSnap = await getDocs(spaQuery);
-                  const spaBookings = spaSnap.docs.map((doc) => {
-                        const data = doc.data();
-                        return {
-                              id: doc.id,
-                              type: "Spa",
-                              name: data.serviceName,
-                              date: data.date,
-                              time: data.time,
-                              status: data.status || "Unknown",
-                        };
-                  });
+                  const spaBookings = spaSnap.docs.map((doc) => ({
+                        id: doc.id,
+                        bookingId: doc.data().bookingId,
+                        type: "spa",
+                        serviceId: doc.data().serviceId,
+                        name: doc.data().serviceName,
+                        date: doc.data().date,
+                        time: doc.data().time,
+                        duration: doc.data().duration,
+                        price: doc.data().price,
+                        status: doc.data().status || "confirmed",
+                        createdAt: doc.data().createdAt?.toDate() || null,
+                  }));
 
                   // ========== Movie Bookings ==========
                   const movieQuery = query(
@@ -440,17 +458,20 @@ export const VoyagerProvider = ({ children }) => {
                         where("userId", "==", currentUser.uid)
                   );
                   const movieSnap = await getDocs(movieQuery);
-                  const movieBookings = movieSnap.docs.map((doc) => {
-                        const data = doc.data();
-                        return {
-                              id: doc.id,
-                              type: "Movie",
-                              name: data.movieTitle,
-                              date: data.showtime?.split(" ")[0], // assuming format: "2025-05-03 18:00"
-                              time: data.showtime?.split(" ")[1],
-                              status: data.status || "Unknown",
-                        };
-                  });
+                  const movieBookings = movieSnap.docs.map((doc) => ({
+                        id: doc.id,
+                        bookingId: doc.data().bookingId,
+                        type: "movie",
+                        movieId: doc.data().movieId,
+                        name: doc.data().movieTitle,
+                        date: doc.data().showtime?.split(" ")[0], // assuming format: "2025-05-03 18:00"
+                        time: doc.data().showtime,
+                        seats: doc.data().seats,
+                        theater: doc.data().theater,
+                        price: doc.data().price,
+                        status: doc.data().status || "confirmed",
+                        createdAt: doc.data().createdAt?.toDate() || null,
+                  }));
 
                   // ========== Entertainment Bookings ==========
                   const entertainmentQuery = query(
@@ -459,17 +480,20 @@ export const VoyagerProvider = ({ children }) => {
                   );
                   const entertainmentSnap = await getDocs(entertainmentQuery);
                   const entertainmentBookings = entertainmentSnap.docs.map(
-                        (doc) => {
-                              const data = doc.data();
-                              return {
-                                    id: doc.id,
-                                    type: "Entertainment",
-                                    name: data.eventTitle,
-                                    date: data.date,
-                                    time: data.time,
-                                    status: data.status || "Unknown",
-                              };
-                        }
+                        (doc) => ({
+                              id: doc.id,
+                              bookingId: doc.data().bookingId,
+                              type: "entertainment",
+                              eventId: doc.data().eventId,
+                              name: doc.data().eventTitle,
+                              date: doc.data().date,
+                              time: doc.data().time,
+                              seats: doc.data().seats,
+                              section: doc.data().section || "general",
+                              price: doc.data().price,
+                              status: doc.data().status || "confirmed",
+                              createdAt: doc.data().createdAt?.toDate() || null,
+                        })
                   );
 
                   const allBookings = [
@@ -477,13 +501,12 @@ export const VoyagerProvider = ({ children }) => {
                         ...spaBookings,
                         ...movieBookings,
                         ...entertainmentBookings,
-                  ];
+                  ].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-                  console.log("🎟 Direct Bookings:", allBookings);
-                  return allBookings;
+                  return { success: true, bookings: allBookings };
             } catch (error) {
-                  console.error("Error fetching direct bookings:", error);
-                  return [];
+                  console.error("Error fetching user bookings:", error);
+                  return { success: false, error: error.message };
             } finally {
                   setLoading(false);
             }
@@ -491,6 +514,9 @@ export const VoyagerProvider = ({ children }) => {
 
       // ==================== GET USER ORDERS ====================
       const getUserOrders = async () => {
+            if (!currentUser)
+                  return { success: false, error: "No user logged in" };
+
             try {
                   setLoading(true);
 
@@ -500,102 +526,62 @@ export const VoyagerProvider = ({ children }) => {
                         where("userId", "==", currentUser.uid)
                   );
                   const foodSnapshot = await getDocs(foodQuery);
-                  const foodOrders = foodSnapshot.docs.map((doc) => {
-                        const data = doc.data();
-                        return {
-                              id: doc.id,
-                              type: "Food",
-                              items:
-                                    data.items?.map((item) => ({
-                                          name: item.name,
-                                          price: item.price,
-                                          quantity: item.quantity || 1,
-                                    })) || [],
-                              total: data.total || 0,
-                              status: data.status || "Unknown",
-                              deliveryLocation:
-                                    data.deliveryLocation || "Unknown",
-                              specialInstructions:
-                                    data.specialInstructions || "",
-                              createdAt: data.createdAt?.toDate?.() || null,
-                              time:
-                                    data.createdAt
-                                          ?.toDate?.()
-                                          .toLocaleString() || "Unknown",
-                        };
-                  });
+                  const foodOrders = foodSnapshot.docs.map((doc) => ({
+                        id: doc.id,
+                        orderId: doc.data().orderId,
+                        type: "food",
+                        items:
+                              doc.data().items?.map((item) => ({
+                                    name: item.name,
+                                    price: item.price,
+                                    quantity: item.quantity || 1,
+                              })) || [],
+                        totalPrice: doc.data().price || 0,
+                        status: doc.data().status || "preparing",
+                        deliveryLocation:
+                              doc.data().deliveryLocation || "Unknown",
+                        specialInstructions:
+                              doc.data().specialInstructions || "",
+                        createdAt: doc.data().createdAt?.toDate() || null,
+                  }));
 
-                  // Query giftOrders with the updated structure
+                  // Query giftOrders
                   const giftQuery = query(
                         collection(db, "giftOrders"),
                         where("userId", "==", currentUser.uid)
                   );
                   const giftSnapshot = await getDocs(giftQuery);
-                  const giftOrders = giftSnapshot.docs.map((doc) => {
-                        const data = doc.data();
-                        return {
-                              id: doc.id,
-                              type: "Gift",
-                              items:
-                                    data.items?.map((item) => ({
-                                          id: item.id,
-                                          name: item.name,
-                                          price: item.price,
-                                          image: item.image,
-                                          description: item.description,
-                                          category: item.category,
-                                          quantity: item.quantity || 1,
-                                    })) || [],
-                              total: data.total || 0,
-                              status: data.status || "Unknown",
-                              deliveryOption: data.deliveryOption || "cabin",
-                              deliveryLocation:
-                                    data.deliveryLocation || "Unknown",
-                              createdAt: data.createdAt?.toDate?.() || null,
-                              time:
-                                    data.createdAt
-                                          ?.toDate?.()
-                                          .toLocaleString() || "Unknown",
-                              updatedAt: data.updatedAt?.toDate?.() || null,
-                        };
-                  });
+                  const giftOrders = giftSnapshot.docs.map((doc) => ({
+                        id: doc.id,
+                        orderId: doc.data().orderId,
+                        type: "gift",
+                        items:
+                              doc.data().items?.map((item) => ({
+                                    id: item.id,
+                                    name: item.name,
+                                    price: item.price,
+                                    image: item.image,
+                                    description: item.description,
+                                    category: item.category,
+                                    quantity: item.quantity || 1,
+                              })) || [],
+                        totalPrice: doc.data().price || 0,
+                        status: doc.data().status || "processing",
+                        deliveryOption: doc.data().deliveryOption || "cabin",
+                        deliveryLocation:
+                              doc.data().deliveryLocation || "Unknown",
+                        createdAt: doc.data().createdAt?.toDate() || null,
+                        updatedAt: doc.data().updatedAt?.toDate() || null,
+                  }));
 
-                  // Combine and sort by date (newest first)
                   const allOrders = [...foodOrders, ...giftOrders].sort(
-                        (a, b) => {
-                              const dateA = a.createdAt || new Date(0);
-                              const dateB = b.createdAt || new Date(0);
-                              return dateB - dateA;
-                        }
+                        (a, b) => (b.createdAt || 0) - (a.createdAt || 0)
                   );
 
-                  return allOrders;
+                  return { success: true, orders: allOrders };
             } catch (error) {
                   console.error("Error fetching user orders:", error);
-                  return {
-                        error: true,
-                        message: error.message,
-                        code: error.code || "UNKNOWN_ERROR",
-                  };
-            } finally {
-                  setLoading(false);
-            }
-      };
-
-      // ==================== FETCH FOOD ITEMS ====================
-      const fetchFoodItems = async () => {
-            try {
-                  setLoading(true);
-                  const querySnapshot = await getDocs(
-                        collection(db, "foodItems")
-                  );
-                  const items = [];
-                  querySnapshot.forEach((doc) => {
-                        items.push({ id: doc.id, ...doc.data() });
-                  });
-                  setFoodItems(items);
-            } catch (error) {
-                  console.error("Error fetching food items:", error);
+                  return { success: false, error: error.message };
             } finally {
                   setLoading(false);
             }
@@ -715,6 +701,24 @@ export const VoyagerProvider = ({ children }) => {
                   setProducts(productsData);
             } catch (error) {
                   console.error("Error fetching products:", error);
+            } finally {
+                  setLoading(false);
+            }
+      };
+
+      const fetchFoodItems = async () => {
+            try {
+                  setLoading(true);
+                  const querySnapshot = await getDocs(
+                        collection(db, "foodItems")
+                  );
+                  const items = [];
+                  querySnapshot.forEach((doc) => {
+                        items.push({ id: doc.id, ...doc.data() });
+                  });
+                  setFoodItems(items);
+            } catch (error) {
+                  console.error("Error fetching food items:", error);
             } finally {
                   setLoading(false);
             }

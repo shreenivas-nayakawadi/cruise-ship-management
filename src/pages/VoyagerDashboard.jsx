@@ -20,6 +20,7 @@ import { useVoyagerContext } from "../context/VoyagerContext";
 const VoyagerDashboard = () => {
       const [upcomingActivities, setUpcomingActivities] = useState([]);
       const [recentOrders, setRecentOrders] = useState([]);
+      const [recentBookings, setRecentBookings] = useState([]);
       const [loading, setLoading] = useState(true);
       const { getUserOrders, getUserBookings } = useVoyagerContext();
 
@@ -32,11 +33,15 @@ const VoyagerDashboard = () => {
 
       const getStatusIcon = (status) => {
             switch (status.toLowerCase()) {
-                  case "delivered":
-                        return <FiCheckCircle className="text-green-500" />;
-                  case "processing":
+                  case "preparing":
                         return <FiClock className="text-yellow-500" />;
+                  case "processing":
+                        return <FiPackage className="text-blue-500" />;
                   case "shipped":
+                        return <FiTruck className="text-blue-500" />;
+                  case "ready":
+                        return <FiCheckCircle className="text-green-500" />;
+                  case "delivered":
                         return <FiTruck className="text-blue-500" />;
                   default:
                         return <FiPackage className="text-gray-500" />;
@@ -51,6 +56,21 @@ const VoyagerDashboard = () => {
                         return <FiPackage className="text-blue-500" />;
                   default:
                         return <FiPackage className="text-gray-500" />;
+            }
+      };
+
+      const getBookingIcon = (type) => {
+            switch (type.toLowerCase()) {
+                  case "movie":
+                        return <FiFilm className="text-purple-500" />;
+                  case "entertainment":
+                        return <FiMusic className="text-blue-500" />;
+                  case "spa":
+                        return <FiSmile className="text-pink-500" />;
+                  case "activities":
+                        return <FiActivity className="text-green-500" />;
+                  default:
+                        return <FiCalendar className="text-gray-500" />;
             }
       };
 
@@ -69,7 +89,7 @@ const VoyagerDashboard = () => {
                   try {
                         setLoading(true);
 
-                        // Load mock activities (replace with actual API calls)
+                        // Mock activities (static data)
                         setUpcomingActivities([
                               {
                                     id: 1,
@@ -94,9 +114,14 @@ const VoyagerDashboard = () => {
                               },
                         ]);
 
-                        // Load actual orders and bookings
-                        const orders = await getUserOrders();
-                        const bookings = await getUserBookings();
+                        // Load actual orders and bookings via context
+                        const ordersResponse = await getUserOrders();
+                        const bookingsResponse = await getUserBookings();
+
+                        // Access the orders array from the response
+                        const orders = ordersResponse?.orders || [];
+                        const bookings = bookingsResponse?.bookings || [];
+                        console.log(bookings);
 
                         const sortedOrders = orders
                               .sort(
@@ -105,13 +130,45 @@ const VoyagerDashboard = () => {
                                           new Date(a.createdAt)
                               )
                               .slice(0, 3);
+                        const sortedBookings = bookings
+                              .sort(
+                                    (a, b) =>
+                                          new Date(b.createdAt) -
+                                          new Date(a.createdAt)
+                              )
+                              .slice(0, 3);
 
+                        setRecentBookings(sortedBookings);
                         setRecentOrders(sortedOrders);
                   } catch (error) {
                         console.error("Error loading dashboard data:", error);
                   } finally {
                         setLoading(false);
                   }
+
+                  setUpcomingActivities([
+                        {
+                              id: 1,
+                              name: "Sunset Cocktail Party",
+                              time: "18:00",
+                              location: "Deck 9 Poolside",
+                              date: "Today",
+                        },
+                        {
+                              id: 2,
+                              name: "Broadway Show",
+                              time: "20:30",
+                              location: "Grand Theater",
+                              date: "Tomorrow",
+                        },
+                        {
+                              id: 3,
+                              name: "Island Excursion",
+                              time: "09:00",
+                              location: "Portside",
+                              date: "Day 3",
+                        },
+                  ]);
             };
 
             loadDashboardData();
@@ -184,7 +241,6 @@ const VoyagerDashboard = () => {
                                     ))}
                               </div>
                         </div>
-
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                               {/* Upcoming Activities */}
                               <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
@@ -293,7 +349,6 @@ const VoyagerDashboard = () => {
                                     </div>
                               </div>
                         </div>
-
                         {/* Recent Orders */}
                         <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
                               <div className="flex justify-between items-center mb-4">
@@ -331,6 +386,9 @@ const VoyagerDashboard = () => {
                                                                   Total
                                                             </th>
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Delivery To
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                                   Status
                                                             </th>
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -363,7 +421,7 @@ const VoyagerDashboard = () => {
                                                                                           </div>
                                                                                           <div className="text-sm text-gray-500">
                                                                                                 #
-                                                                                                {order.id.substring(
+                                                                                                {order.orderId.substring(
                                                                                                       0,
                                                                                                       8
                                                                                                 )}
@@ -399,11 +457,15 @@ const VoyagerDashboard = () => {
                                                                               </div>
                                                                         </td>
                                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                              $
-                                                                              {order.total?.toFixed(
+                                                                              ₹
+                                                                              {order.totalPrice?.toFixed(
                                                                                     2
                                                                               ) ||
                                                                                     "0.00"}
+                                                                        </td>
+                                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                              {order.deliveryLocation ||
+                                                                                    "N/A"}
                                                                         </td>
                                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                                               <div className="flex items-center">
@@ -412,13 +474,14 @@ const VoyagerDashboard = () => {
                                                                                     )}
                                                                                     <span
                                                                                           className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${
-                                  order.status === "Delivered"
-                                        ? "bg-green-100 text-green-800"
-                                        : order.status === "Processing"
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-gray-100 text-gray-800"
-                            }`}
+              ${
+                    order.status === "delivered"
+                          ? "bg-green-100 text-green-800"
+                          : order.status === "preparing" ||
+                            order.status === "processing"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-100 text-gray-800"
+              }`}
                                                                                     >
                                                                                           {
                                                                                                 order.status
@@ -446,6 +509,150 @@ const VoyagerDashboard = () => {
                                           <p className="mt-1 text-sm text-gray-500">
                                                 Your order history will appear
                                                 here once you make a purchase.
+                                          </p>
+                                    </div>
+                              )}
+                        </div>
+                        {/*Recent Bookings*/}
+
+                        <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
+                              <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-xl font-semibold text-gray-800">
+                                          Upcoming Bookings
+                                    </h2>
+                                    <Link
+                                          to="/voyager/bookings"
+                                          className="text-blue-600 text-sm hover:underline"
+                                    >
+                                          View All
+                                    </Link>
+                              </div>
+                              {loading ? (
+                                    <div className="text-center py-8">
+                                          <div className="animate-pulse flex justify-center">
+                                                <div className="h-8 w-8 bg-blue-200 rounded-full"></div>
+                                          </div>
+                                          <p className="mt-2 text-gray-500">
+                                                Loading your bookings...
+                                          </p>
+                                    </div>
+                              ) : recentBookings.length > 0 ? (
+                                    <div className="overflow-x-auto">
+                                          <table className="min-w-full divide-y divide-gray-200">
+                                                <thead className="bg-gray-50">
+                                                      <tr>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Booking
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Type
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Date & Time
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Event time
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Guests
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Status
+                                                            </th>
+                                                      </tr>
+                                                </thead>
+                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                      {recentBookings.map(
+                                                            (booking) => (
+                                                                  <tr
+                                                                        key={
+                                                                              booking.id
+                                                                        }
+                                                                        className="hover:bg-gray-50"
+                                                                  >
+                                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                                              <div className="flex items-center">
+                                                                                    <div className="flex-shrink-0">
+                                                                                          {getBookingIcon(
+                                                                                                booking.type
+                                                                                          )}
+                                                                                    </div>
+                                                                                    <div className="ml-4">
+                                                                                          <div className="text-sm font-medium text-gray-900">
+                                                                                                {booking.name ||
+                                                                                                      "Booking"}
+                                                                                          </div>
+                                                                                          <div className="text-sm text-gray-500">
+                                                                                                #
+                                                                                                {booking.bookingId.substring(
+                                                                                                      0,
+                                                                                                      8
+                                                                                                )}
+                                                                                          </div>
+                                                                                    </div>
+                                                                              </div>
+                                                                        </td>
+                                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                                              <div className="text-sm text-gray-900">
+                                                                                    {booking.type ||
+                                                                                          "N/A"}
+                                                                              </div>
+                                                                        </td>
+                                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                                              <div className="text-sm text-gray-900">
+                                                                                    {formatDate(
+                                                                                          booking.createdAt
+                                                                                    )}
+                                                                              </div>
+                                                                        </td>
+                                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                              {booking.time ||
+                                                                                    "N/A"}
+                                                                        </td>
+                                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                              {booking.seats
+                                                                                    ? booking.type ==
+                                                                                      "movie"
+                                                                                          ? booking
+                                                                                                  .seats
+                                                                                                  .length
+                                                                                          : booking.seats
+                                                                                    : 1}
+                                                                        </td>
+                                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                                              <div className="flex items-center">
+                                                                                    <span
+                                                                                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    ${
+                          booking.status === "confirmed"
+                                ? "bg-green-100 text-green-800"
+                                : booking.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-gray-100 text-gray-800"
+                    }`}
+                                                                                    >
+                                                                                          {
+                                                                                                booking.status
+                                                                                          }
+                                                                                    </span>
+                                                                              </div>
+                                                                        </td>
+                                                                  </tr>
+                                                            )
+                                                      )}
+                                                </tbody>
+                                          </table>
+                                    </div>
+                              ) : (
+                                    <div className="p-6 text-center">
+                                          <FiCalendar className="mx-auto h-12 w-12 text-gray-400" />
+                                          <h3 className="mt-2 text-sm font-medium text-gray-900">
+                                                No bookings found
+                                          </h3>
+                                          <p className="mt-1 text-sm text-gray-500">
+                                                Your booking history will appear
+                                                here once you make a
+                                                reservation.
                                           </p>
                                     </div>
                               )}

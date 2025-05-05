@@ -73,7 +73,7 @@ const OrderFood = () => {
                                                                   }
                                                             </span>
                                                             <span className="font-medium">
-                                                                  $
+                                                                  ₹
                                                                   {item.price.toFixed(
                                                                         2
                                                                   )}
@@ -119,7 +119,7 @@ const OrderFood = () => {
                                                                               }
                                                                         </span>
                                                                         <span>
-                                                                              $
+                                                                              ₹
                                                                               {item.price.toFixed(
                                                                                     2
                                                                               )}
@@ -131,7 +131,7 @@ const OrderFood = () => {
                                                 <div className="font-bold border-t pt-3 flex justify-between">
                                                       <span>Total:</span>
                                                       <span>
-                                                            $
+                                                            ₹
                                                             {cart
                                                                   .reduce(
                                                                         (

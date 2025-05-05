@@ -1,6 +1,13 @@
-import { Route, Routes, Navigate, Outlet } from "react-router-dom";
+import { Route, Routes, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import "./App.css";
+
+// Context Providers
+import { VoyagerProvider } from "./context/VoyagerContext.jsx";
+import { AdminProvider } from "./context/AdminContext.jsx";
+import { ManagerProvider } from "./context/ManagerContext.jsx";
+import { HeadCookProvider } from "./context/HeadCookContext.jsx";
+import { SupervisorProvider } from "./context/SupervisorContext.jsx";
 
 // Auth Components
 import LoginForm from "./components/auth/LoginForm";
@@ -15,6 +22,7 @@ import SpaBooking from "./components/voyager/SpaBooking";
 import Activities from "./components/voyager/Activities";
 import Entertainment from "./components/voyager/Entertainment";
 import Orders from "./components/voyager/Orders";
+import Bookings from "./components/voyager/Bookings";
 
 // Admin Components
 import AdminDashboard from "./pages/AdminDashboard";
@@ -25,12 +33,24 @@ import AdminActivity from "./components/admin/AdminActivity";
 import AdminEntertainment from "./components/admin/AdminEntertainment";
 import AdminGifts from "./components/admin/AdminGifts";
 
-// Common Components
+// Manager Components
+import ManagerDashboard from "./pages/ManagerDashboard";
+import ManagerSpa from "./components/manager/ManagerSpa";
+import ManagerMovies from "./components/manager/ManagerMovies";
+import ManagerActivity from "./components/manager/ManagerActivity";
+import ManagerEntertainment from "./components/manager/ManagerEntertainment";
+
+// Head Cook & Supervisor
+import HeadCookDashboard from "./pages/HeadCookDashboard";
+import SupervisorDashboard from "./pages/SupervisorDashboard";
+
+// Common
 import Unauthorized from "./components/common/Unauthorized";
 import NotFound from "./components/common/NotFound";
 
 const RoleGuard = ({ allowedRoles }) => {
       const { currentUser } = useAuth();
+      const location = useLocation();
 
       if (!currentUser) {
             return <Navigate to="/login" state={{ from: location }} replace />;
@@ -44,8 +64,6 @@ const RoleGuard = ({ allowedRoles }) => {
 };
 
 function App() {
-      const { currentUser } = useAuth();
-      console.log(currentUser);
       return (
             <Routes>
                   {/* Public Routes */}
@@ -57,8 +75,14 @@ function App() {
                   <Route path="/register" element={<RegisterForm />} />
                   <Route path="/unauthorized" element={<Unauthorized />} />
 
-                  {/* Voyager Routes - Strictly for voyagers only */}
-                  <Route element={<RoleGuard allowedRoles={["voyager"]} />}>
+                  {/* Voyager Routes */}
+                  <Route
+                        element={
+                              <VoyagerProvider>
+                                    <RoleGuard allowedRoles={["voyager"]} />
+                              </VoyagerProvider>
+                        }
+                  >
                         <Route
                               path="/voyager/dashboard"
                               element={<VoyagerDashboard />}
@@ -85,75 +109,94 @@ function App() {
                               element={<Entertainment />}
                         />
                         <Route path="/voyager/orders" element={<Orders />} />
+                        <Route
+                              path="/voyager/bookings"
+                              element={<Bookings />}
+                        />
                   </Route>
 
-                  {/* Admin Dashboard - Strictly for admins only */}
-                  <Route element={<RoleGuard allowedRoles={["admin"]} />}>
+                  {/* Admin Routes */}
+                  <Route
+                        element={
+                              <AdminProvider>
+                                    <RoleGuard allowedRoles={["admin"]} />
+                              </AdminProvider>
+                        }
+                  >
                         <Route
                               path="/admin/dashboard"
                               element={<AdminDashboard />}
                         />
-                  </Route>
-
-                  {/* Food Management - Admin and Head Chef */}
-                  <Route
-                        element={
-                              <RoleGuard
-                                    allowedRoles={["admin", "head-cook"]}
-                              />
-                        }
-                  >
                         <Route path="/admin/food" element={<AdminFood />} />
-                  </Route>
-
-                  {/* Gift Shop Management - Admin and Manager */}
-                  <Route
-                        element={
-                              <RoleGuard allowedRoles={["admin", "manager"]} />
-                        }
-                  >
                         <Route path="/admin/gifts" element={<AdminGifts />} />
-                  </Route>
-
-                  {/* Spa Management - Admin and Manager */}
-                  <Route
-                        element={
-                              <RoleGuard allowedRoles={["admin", "manager"]} />
-                        }
-                  >
                         <Route path="/admin/spa" element={<AdminSpa />} />
-                  </Route>
-
-                  {/* Activities Management - Admin and Supervisor */}
-                  <Route
-                        element={
-                              <RoleGuard
-                                    allowedRoles={["admin", "supervisor"]}
-                              />
-                        }
-                  >
+                        <Route path="/admin/movies" element={<AdminMovies />} />
                         <Route
                               path="/admin/activities"
                               element={<AdminActivity />}
                         />
-                  </Route>
-
-                  {/* Entertainment Management - Admin and Supervisor */}
-                  <Route
-                        element={
-                              <RoleGuard
-                                    allowedRoles={["admin", "supervisor"]}
-                              />
-                        }
-                  >
-                        <Route path="/admin/movies" element={<AdminMovies />} />
                         <Route
                               path="/admin/entertainment"
                               element={<AdminEntertainment />}
                         />
                   </Route>
 
-                  {/* Error Handling */}
+                  {/* Manager Routes with ManagerProvider only here */}
+                  <Route
+                        element={
+                              <ManagerProvider>
+                                    <RoleGuard allowedRoles={["manager"]} />
+                              </ManagerProvider>
+                        }
+                  >
+                        <Route
+                              path="/manager/dashboard"
+                              element={<ManagerDashboard />}
+                        />
+                        <Route path="/manager/spa" element={<ManagerSpa />} />
+                        <Route
+                              path="/manager/movie"
+                              element={<ManagerMovies />}
+                        />
+                        <Route
+                              path="/manager/activities"
+                              element={<ManagerActivity />}
+                        />
+                        <Route
+                              path="/manager/entertainment"
+                              element={<ManagerEntertainment />}
+                        />
+                  </Route>
+
+                  {/* Head Cook Routes */}
+                  <Route
+                        element={
+                              <HeadCookProvider>
+                                    <RoleGuard allowedRoles={["head-cook"]} />
+                              </HeadCookProvider>
+                        }
+                  >
+                        <Route
+                              path="/head-cook/dashboard"
+                              element={<HeadCookDashboard />}
+                        />
+                  </Route>
+
+                  {/* Supervisor Routes */}
+                  <Route
+                        element={
+                              <SupervisorProvider>
+                                    <RoleGuard allowedRoles={["supervisor"]} />
+                              </SupervisorProvider>
+                        }
+                  >
+                        <Route
+                              path="/supervisor/dashboard"
+                              element={<SupervisorDashboard />}
+                        />
+                  </Route>
+
+                  {/* 404 */}
                   <Route path="/404" element={<NotFound />} />
                   <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>

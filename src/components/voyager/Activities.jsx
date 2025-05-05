@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { FiActivity, FiCalendar, FiMapPin, FiClock } from "react-icons/fi";
+import {
+      FiActivity,
+      FiCalendar,
+      FiMapPin,
+      FiClock,
+      FiUsers,
+} from "react-icons/fi";
+import { FaRupeeSign } from "react-icons/fa";
 import { useVoyagerContext } from "../../context/VoyagerContext";
 import VoyagerNavbar from "./VoyagerNavbar";
 
@@ -7,15 +14,17 @@ const Activities = () => {
       const [activityItems, setActivityItems] = useState([]);
       const [selectedActivity, setSelectedActivity] = useState(null);
       const [bookingConfirmed, setBookingConfirmed] = useState(false);
+      const [participants, setParticipants] = useState(1);
       const { bookActivity, loading, activities, fetchActivities } =
             useVoyagerContext();
 
       const handleBooking = async () => {
-            const result = await bookActivity(selectedActivity);
+            const result = await bookActivity(selectedActivity, participants);
             if (result.success) {
                   console.log("Activity booked:", result.bookingId);
                   setBookingConfirmed(true);
                   setTimeout(() => setBookingConfirmed(false), 3000);
+                  fetchActivities(); // refresh data after booking
             } else {
                   alert("Booking failed: " + result.error);
             }
@@ -60,18 +69,40 @@ const Activities = () => {
                                                             {activity.date}
                                                       </span>
                                                 </div>
-                                                <div className="flex items-center mt-2 text-sm text-gray-600">
-                                                      <FiClock className="mr-1" />
-                                                      <span>
-                                                            {activity.time}
-                                                      </span>
-                                                      <span className="mx-2">
-                                                            •
-                                                      </span>
-                                                      <FiMapPin className="mr-1" />
-                                                      <span>
-                                                            {activity.location}
-                                                      </span>
+                                                <div className="flex items-center mt-2 text-sm text-gray-600 space-x-4">
+                                                      <div className="flex items-center">
+                                                            <FiClock className="mr-1" />
+                                                            <span>
+                                                                  {
+                                                                        activity.time
+                                                                  }
+                                                            </span>
+                                                      </div>
+                                                      <div className="flex items-center">
+                                                            <FiMapPin className="mr-1" />
+                                                            <span>
+                                                                  {
+                                                                        activity.location
+                                                                  }
+                                                            </span>
+                                                      </div>
+                                                      <div className="flex items-center">
+                                                            <FaRupeeSign className="mr-1" />
+                                                            <span>
+                                                                  {
+                                                                        activity.price
+                                                                  }
+                                                            </span>
+                                                      </div>
+                                                      <div className="flex items-center">
+                                                            <FiUsers className="mr-1" />
+                                                            <span>
+                                                                  {
+                                                                        activity.availableSlots
+                                                                  }{" "}
+                                                                  slots
+                                                            </span>
+                                                      </div>
                                                 </div>
                                           </div>
                                     ))}
@@ -120,7 +151,7 @@ const Activities = () => {
                                                 </div>
                                           </div>
 
-                                          <div className="mb-6">
+                                          <div className="mb-4">
                                                 <h3 className="font-medium mb-2">
                                                       Description
                                                 </h3>
@@ -131,8 +162,50 @@ const Activities = () => {
                                                 </p>
                                           </div>
 
+                                          <div className="flex items-center mb-4 space-x-4">
+                                                <div className="flex items-center">
+                                                      <FaRupeeSign className="text-gray-500 mr-1" />
+                                                      <span className="text-gray-700 font-medium">
+                                                            ₹
+                                                            {
+                                                                  selectedActivity.price
+                                                            }{" "}
+                                                            / person
+                                                      </span>
+                                                </div>
+                                                <div className="flex items-center">
+                                                      <FiUsers className="text-gray-500 mr-1" />
+                                                      <span className="text-gray-700">
+                                                            {
+                                                                  selectedActivity.availableSlots
+                                                            }{" "}
+                                                            slots left
+                                                      </span>
+                                                </div>
+                                          </div>
+
+                                          <input
+                                                type="number"
+                                                min="1"
+                                                max={
+                                                      selectedActivity.maxParticipants
+                                                }
+                                                value={participants}
+                                                onChange={(e) =>
+                                                      setParticipants(
+                                                            Number(
+                                                                  e.target.value
+                                                            )
+                                                      )
+                                                }
+                                                className="border border-gray-300 rounded px-3 py-1 mb-4 w-24"
+                                          />
+
                                           <button
-                                                onClick={handleBooking}
+                                                onClick={() => {
+                                                      setSelectedActivity(null);
+                                                      handleBooking();
+                                                }}
                                                 disabled={loading}
                                                 className={`w-full ${
                                                       loading

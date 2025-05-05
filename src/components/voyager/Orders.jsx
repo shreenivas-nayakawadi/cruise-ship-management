@@ -18,8 +18,8 @@ const Orders = () => {
             const loadOrders = async () => {
                   try {
                         setLoading(true);
-                        const orders = await getUserOrders();
-                        setAllOrders(orders);
+                        const order = await getUserOrders();
+                        setAllOrders(order.orders);
                   } catch (error) {
                         console.error("Error loading orders:", error);
                   } finally {
@@ -31,17 +31,23 @@ const Orders = () => {
       }, []);
 
       const getStatusIcon = (status) => {
-            switch (status.toLowerCase()) {
-                  case "delivered":
-                        return <FiCheckCircle className="text-green-500" />;
-                  case "processing":
-                        return <FiClock className="text-yellow-500" />;
-                  case "shipped":
-                        return <FiTruck className="text-blue-500" />;
-                  default:
-                        return <FiPackage className="text-gray-500" />;
-            }
-      };
+                  switch (status.toLowerCase()) {
+                        case "preparing":
+                              return <FiClock className="text-yellow-500" />;
+                        case "processing":
+                              return <FiPackage className="text-blue-500" />;
+                        case "shipped":
+                              return <FiTruck className="text-blue-500" />;
+                        case "ready":
+                              return <FiCheckCircle className="text-green-500" />;
+                        case "delivered":
+                              return <FiTruck className="text-blue-500" />;
+                        default:
+                              return <FiPackage className="text-gray-500" />;
+                  }
+            };
+
+      
 
       const getTypeIcon = (type) => {
             switch (type.toLowerCase()) {
@@ -108,6 +114,9 @@ const Orders = () => {
                                                                   Total
                                                             </th>
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                  Delivery To
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                                   Status
                                                             </th>
                                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -140,7 +149,7 @@ const Orders = () => {
                                                                                           </div>
                                                                                           <div className="text-sm text-gray-500">
                                                                                                 #
-                                                                                                {order.id.substring(
+                                                                                                {order.orderId.substring(
                                                                                                       0,
                                                                                                       8
                                                                                                 )}
@@ -176,10 +185,15 @@ const Orders = () => {
                                                                               </div>
                                                                         </td>
                                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                              $
-                                                                              {order.total.toFixed(
+                                                                              ₹
+                                                                              {order.totalPrice?.toFixed(
                                                                                     2
-                                                                              )}
+                                                                              ) ||
+                                                                                    "0.00"}
+                                                                        </td>
+                                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                              {order.deliveryLocation ||
+                                                                                    "N/A"}
                                                                         </td>
                                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                                               <div className="flex items-center">
@@ -188,13 +202,14 @@ const Orders = () => {
                                                                                     )}
                                                                                     <span
                                                                                           className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${
-                                  order.status === "Delivered"
-                                        ? "bg-green-100 text-green-800"
-                                        : order.status === "Processing"
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-gray-100 text-gray-800"
-                            }`}
+              ${
+                    order.status === "delivered"
+                          ? "bg-green-100 text-green-800"
+                          : order.status === "preparing" ||
+                            order.status === "processing"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-100 text-gray-800"
+              }`}
                                                                                     >
                                                                                           {
                                                                                                 order.status

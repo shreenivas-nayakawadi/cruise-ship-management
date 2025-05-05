@@ -80,7 +80,7 @@ const AdminNavbar = () => {
                                     >
                                           <img
                                                 className="h-8 w-auto"
-                                                src="src\assets\logo.png"
+                                                src="/logo.png"
                                           />
                                           <span className="ml-2 text-xl font-bold text-blue-600 hidden md:block">
                                                 Cruise Admin

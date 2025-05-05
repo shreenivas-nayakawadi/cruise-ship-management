@@ -26,14 +26,12 @@ const MovieBooking = () => {
 
       const seatsbooked = async (movieId, showtime) => {
             const booked = await getBookedSeats(movieId, showtime);
-            console.log("Booked seats:", booked);
             setBookedSeats(booked);
       };
 
       const bookTickets = async () => {
             const result = await bookMovieTickets(selectedMovie, selectedSeats);
             if (result.success) {
-                  console.log("Movie booking confirmed:", result.bookingId);
                   setBookingComplete(true);
                   setSelectedSeats([]);
                   // Refresh movies data after successful booking
@@ -170,12 +168,19 @@ const MovieBooking = () => {
                                                             )}
                                                       </h3>
                                                       <span className="font-bold">
-                                                            Total: $
+                                                            Total: ₹
                                                             {(
                                                                   selectedSeats.length *
-                                                                  8.99
+                                                                  (selectedMovie?.price ||
+                                                                        0)
                                                             ).toFixed(2)}
                                                       </span>
+                                                </div>
+                                                <div className="text-sm text-gray-700 mb-4">
+                                                      Price per seat: ₹
+                                                      {selectedMovie.price?.toFixed(
+                                                            2
+                                                      ) || "N/A"}
                                                 </div>
                                                 <button
                                                       onClick={bookTickets}

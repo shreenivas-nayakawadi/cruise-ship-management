@@ -1,60 +1,45 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-      FiCoffee,
-      FiGift,
-      FiFilm,
-      FiSmile,
-      FiActivity,
-      FiMusic,
-} from "react-icons/fi";
-import AdminNavbar from "../components/admin/AdminNavbar";
+import { FiFilm, FiSmile, FiActivity, FiMusic } from "react-icons/fi";
+import ManagerNavbar from "../components/manager/ManagerNavbar";
 
-const AdminDashboard = () => {
+const ManagerDashboard = () => {
       const quickActions = [
             {
-                  icon: <FiCoffee className="text-2xl" />,
-                  label: "Food Management",
-                  link: "/admin/food",
-            },
-            {
-                  icon: <FiGift className="text-2xl" />,
-                  label: "Gift Shop Admin",
-                  link: "/admin/gifts",
-            },
-            {
                   icon: <FiFilm className="text-2xl" />,
-                  label: "Movie Management",
-                  link: "/admin/movies",
+                  label: "Movie Bookings",
+                  link: "/manager/movie",
             },
             {
                   icon: <FiSmile className="text-2xl" />,
-                  label: "Spa Services",
-                  link: "/admin/spa",
+                  label: "Spa Bookings",
+                  link: "/manager/spa",
             },
             {
                   icon: <FiActivity className="text-2xl" />,
-                  label: "Activities Control",
-                  link: "/admin/activities",
+                  label: "Activities Bookings",
+                  link: "/manager/activities",
             },
             {
                   icon: <FiMusic className="text-2xl" />,
-                  label: "Entertainment",
-                  link: "/admin/entertainment",
+                  label: "Entertainment Bookings",
+                  link: "/manager/entertainment",
             },
       ];
 
       return (
             <div className="min-h-screen bg-gray-50">
-                  <AdminNavbar />
+                  <ManagerNavbar />
                   {/* Header */}
                   <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6">
                         <h1 className="text-3xl font-bold">
-                              Admin Control Panel
+                              Manager Control Panel
                         </h1>
                         <p className="mt-2">
-                              Manage cruise services, track operations, and
-                              oversee onboard experiences.
+                              Manage cruise services, monitor booking
+                              operations, and oversee onboard experiences
+                              including movies, spa, events, and activities to
+                              ensure smooth execution and customer satisfaction.
                         </p>
                   </div>
 
@@ -64,12 +49,12 @@ const AdminDashboard = () => {
                               <h2 className="text-xl font-semibold mb-4 text-gray-800">
                                     Quick Actions
                               </h2>
-                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                     {quickActions.map((action, index) => (
                                           <Link
                                                 key={index}
                                                 to={action.link}
-                                                className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col items-center justify-center text-center"
+                                                className="bg-white p-4 rounded-lg  shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col items-center justify-center text-center"
                                           >
                                                 <div className="text-blue-600 mb-2">
                                                       {action.icon}
@@ -86,4 +71,4 @@ const AdminDashboard = () => {
       );
 };
 
-export default AdminDashboard;
+export default ManagerDashboard;

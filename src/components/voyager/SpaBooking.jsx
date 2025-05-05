@@ -16,11 +16,17 @@ const SpaBooking = () => {
       const availableTimes = ["09:00", "11:00", "13:00", "15:00", "17:00"];
 
       const bookAppointment = async () => {
+            console.log("Booking details:", {
+                    service: selectedService,
+                    date: selectedDate,
+                    time: selectedTime,
+            });
             const result = await bookSpaAppointment(
-                  selectedService,
-                  selectedDate,
-                  selectedTime
+                    selectedService,
+                    selectedDate,
+                    selectedTime
             );
+            console.log("Booking result:", result);
             if (result.success) {
                   console.log("Appointment booked:", result.bookingId);
                   setBookingComplete(true);
@@ -76,7 +82,7 @@ const SpaBooking = () => {
                                                             {service.duration}
                                                       </span>
                                                       <span className="font-medium">
-                                                            ${service.price}
+                                                            ₹{service.price}
                                                       </span>
                                                 </div>
                                           </div>
@@ -189,7 +195,7 @@ const SpaBooking = () => {
                                                                   {selectedTime}
                                                             </div>
                                                             <div className="mt-2 font-bold">
-                                                                  Total: $
+                                                                  Total: ₹
                                                                   {
                                                                         selectedService.price
                                                                   }

@@ -122,7 +122,7 @@ const AdminGifts = () => {
                                           </div>
                                           <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                      Price ($)
+                                                      Price (₹)
                                                 </label>
                                                 <input
                                                       type="number"
@@ -357,7 +357,7 @@ const AdminGifts = () => {
                                                                               }
                                                                         </td>
                                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                              $
+                                                                              ₹
                                                                               {product.price.toFixed(
                                                                                     2
                                                                               )}
