@@ -95,12 +95,4 @@ export const SupervisorProvider = ({ children }) => {
       );
 };
 
-export const useSupervisorContext = () => {
-      const context = useContext(SupervisorContext);
-      if (!context) {
-            throw new Error(
-                  "useSupervisorContext must be used within a SupervisorProvider"
-            );
-      }
-      return context;
-};
+export const useSupervisorContext = () => useContext(SupervisorContext);

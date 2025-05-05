@@ -22,7 +22,8 @@ const VoyagerDashboard = () => {
       const [recentOrders, setRecentOrders] = useState([]);
       const [recentBookings, setRecentBookings] = useState([]);
       const [loading, setLoading] = useState(true);
-      const { getUserOrders, getUserBookings } = useVoyagerContext();
+      const { getUserOrders, getUserBookings, fetchActivities, activities } =
+            useVoyagerContext();
 
       const [weather] = useState({
             temperature: 28,
@@ -89,31 +90,6 @@ const VoyagerDashboard = () => {
                   try {
                         setLoading(true);
 
-                        // Mock activities (static data)
-                        setUpcomingActivities([
-                              {
-                                    id: 1,
-                                    name: "Sunset Cocktail Party",
-                                    time: "18:00",
-                                    location: "Deck 9 Poolside",
-                                    date: "Today",
-                              },
-                              {
-                                    id: 2,
-                                    name: "Broadway Show",
-                                    time: "20:30",
-                                    location: "Grand Theater",
-                                    date: "Tomorrow",
-                              },
-                              {
-                                    id: 3,
-                                    name: "Island Excursion",
-                                    time: "09:00",
-                                    location: "Portside",
-                                    date: "Day 3",
-                              },
-                        ]);
-
                         // Load actual orders and bookings via context
                         const ordersResponse = await getUserOrders();
                         const bookingsResponse = await getUserBookings();
@@ -145,34 +121,47 @@ const VoyagerDashboard = () => {
                   } finally {
                         setLoading(false);
                   }
-
-                  setUpcomingActivities([
-                        {
-                              id: 1,
-                              name: "Sunset Cocktail Party",
-                              time: "18:00",
-                              location: "Deck 9 Poolside",
-                              date: "Today",
-                        },
-                        {
-                              id: 2,
-                              name: "Broadway Show",
-                              time: "20:30",
-                              location: "Grand Theater",
-                              date: "Tomorrow",
-                        },
-                        {
-                              id: 3,
-                              name: "Island Excursion",
-                              time: "09:00",
-                              location: "Portside",
-                              date: "Day 3",
-                        },
-                  ]);
             };
 
             loadDashboardData();
       }, []);
+
+      // const transformActivities = (activities) => {
+      //       const simplified = activities.map((activity, index) => ({
+      //             id: index + 1,
+      //             name: activity.name,
+      //             time: activity.time.split(" - ")[0],
+      //             location: activity.location,
+      //             date: activity.date,
+      //       }));
+      //       setUpcomingActivities(simplified);
+      // };
+
+      const transformActivities = (activities) => {
+            const simplified = activities
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // newest first
+              .slice(0, 3) // only 3
+              .map((activity, index) => ({
+                id: index + 1, // or activity.id if you want Firestore ID
+                name: activity.name,
+                time: activity.time?.split(" - ")[0] || "Unknown",
+                location: activity.location,
+                date: activity.date,
+              }));
+          
+            setUpcomingActivities(simplified);
+          };
+          
+
+      useEffect(() => {
+            fetchActivities(); // triggers context to fetch data and update `activities`
+      }, []);
+
+      useEffect(() => {
+            if (activities && activities.length > 0) {
+                  transformActivities(activities); // only when activities are available
+            }
+      }, [activities]);
 
       const quickActions = [
             {
@@ -249,7 +238,7 @@ const VoyagerDashboard = () => {
                                                 Upcoming Activities
                                           </h2>
                                           <Link
-                                                to="/voyager/activities"
+                                                to="/voyager/upcomingActivites"
                                                 className="text-blue-600 text-sm hover:underline"
                                           >
                                                 View All
@@ -294,6 +283,19 @@ const VoyagerDashboard = () => {
                                                 )
                                           )}
                                     </div>
+                                    {upcomingActivities.length === 0 && (
+                                          <div className="p-6 text-center">
+                                                <FiCalendar className="mx-auto h-12 w-12 text-gray-400" />
+                                                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                                                      No upcoming activities
+                                                </h3>
+                                                <p className="mt-1 text-sm text-gray-500">
+                                                      Your activity schedule
+                                                      will appear here once you
+                                                      book an activity.
+                                                </p>
+                                          </div>
+                                    )}
                               </div>
 
                               {/* Weather and Ship Status */}

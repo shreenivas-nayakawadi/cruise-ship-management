@@ -756,12 +756,4 @@ export const VoyagerProvider = ({ children }) => {
       );
 };
 
-export const useVoyagerContext = () => {
-      const context = useContext(VoyagerContext);
-      if (!context) {
-            throw new Error(
-                  "useVoyagerContext must be used within a VoyagerProvider"
-            );
-      }
-      return context;
-};
+export const useVoyagerContext = () => useContext(VoyagerContext);

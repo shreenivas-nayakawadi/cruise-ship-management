@@ -47,6 +47,8 @@ import SupervisorDashboard from "./pages/SupervisorDashboard";
 // Common
 import Unauthorized from "./components/common/Unauthorized";
 import NotFound from "./components/common/NotFound";
+import UpcomingActivites from "./components/voyager/UpcomingActivites.jsx";
+import LandingPage from "./pages/LandingPage.jsx";
 
 const RoleGuard = ({ allowedRoles }) => {
       const { currentUser } = useAuth();
@@ -67,10 +69,7 @@ function App() {
       return (
             <Routes>
                   {/* Public Routes */}
-                  <Route
-                        path="/"
-                        element={<h1>Welcome to Cruise Management System</h1>}
-                  />
+                  <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<LoginForm />} />
                   <Route path="/register" element={<RegisterForm />} />
                   <Route path="/unauthorized" element={<Unauthorized />} />
@@ -112,6 +111,10 @@ function App() {
                         <Route
                               path="/voyager/bookings"
                               element={<Bookings />}
+                        />
+                        <Route
+                              path="/voyager/upcomingActivites"
+                              element={<UpcomingActivites />}
                         />
                   </Route>
 

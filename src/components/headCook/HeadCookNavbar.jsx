@@ -35,7 +35,7 @@ const HeadCookNavbar = () => {
                                           </Link>
                                     </div>
                               </div>
-                              <div className=" hidden md:flex md:items-center relative">
+                              <div className=" flex items-center relative">
                                     <button
                                           onClick={() =>
                                                 setMobileMenuOpen(

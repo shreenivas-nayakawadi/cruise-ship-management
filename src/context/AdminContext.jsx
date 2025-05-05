@@ -343,67 +343,6 @@ export const AdminProvider = ({ children }) => {
       }, []);
 
       //=========================Entertainment=========================
-      // Add to your AdminContext.jsx
-      // const [events, setEvents] = useState([]);
-
-      // // Fetch all events
-      // const fetchEvents = async () => {
-      //       try {
-      //             setLoading(true);
-      //             const querySnapshot = await getDocs(collection(db, "events"));
-      //             const eventsData = [];
-      //             querySnapshot.forEach((doc) => {
-      //                   eventsData.push({ id: doc.id, ...doc.data() });
-      //             });
-      //             setEvents(eventsData);
-      //       } catch (error) {
-      //             console.error("Error fetching events:", error);
-      //       } finally {
-      //             setLoading(false);
-      //       }
-      // };
-
-      // // Add new event
-      // const addEvent = async (event) => {
-      //       try {
-      //             setLoading(true);
-      //             const newEventRef = doc(collection(db, "events"));
-      //             await setDoc(newEventRef, {
-      //                   title: event.title,
-      //                   performer: event.performer,
-      //                   time: event.time,
-      //                   location: event.location,
-      //                   date: event.date,
-      //                   description: event.description,
-      //                   createdAt: new Date().toISOString(),
-      //             });
-      //             await fetchEvents();
-      //             return { success: true };
-      //       } catch (error) {
-      //             console.error("Error adding event:", error);
-      //             return { success: false, error: error.message };
-      //       } finally {
-      //             setLoading(false);
-      //       }
-      // };
-
-      // // Update event
-      // const updateEvent = async (id, updatedData) => {
-      //       try {
-      //             setLoading(true);
-      //             const eventRef = doc(db, "events", id);
-      //             await updateDoc(eventRef, updatedData);
-      //             await fetchEvents();
-      //             return { success: true };
-      //       } catch (error) {
-      //             console.error("Error updating event:", error);
-      //             return { success: false, error: error.message };
-      //       } finally {
-      //             setLoading(false);
-      //       }
-      // };
-
-      
 
       const [events, setEvents] = useState([]);
 

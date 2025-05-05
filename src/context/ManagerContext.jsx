@@ -109,12 +109,4 @@ export const ManagerProvider = ({ children }) => {
       );
 };
 
-export const useManagerContext = () => {
-      const context = useContext(ManagerContext);
-      if (!context) {
-            throw new Error(
-                  "useManagerContext must be used within a ManagerProvider"
-            );
-      }
-      return context;
-};
+export const useManagerContext = () => useContext(ManagerContext);

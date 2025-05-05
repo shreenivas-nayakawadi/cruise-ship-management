@@ -65,7 +65,7 @@ const ManagerNavbar = () => {
                               {/* Logo and desktop menu */}
                               <div className="flex items-center justify-between">
                                     <Link
-                                          to="/voyager/dashboard"
+                                          to="/manager/dashboard"
                                           className="flex-shrink-0 flex items-center"
                                     >
                                           <img

@@ -22,7 +22,7 @@ const SupervisorNavbar = () => {
                               <div className="flex">
                                     <div className="flex items-center justify-between">
                                           <Link
-                                                to="/head-cook/dashboard"
+                                                to="/supervisor/dashboard"
                                                 className="flex-shrink-0 flex items-center"
                                           >
                                                 <img
@@ -35,7 +35,7 @@ const SupervisorNavbar = () => {
                                           </Link>
                                     </div>
                               </div>
-                              <div className=" hidden md:flex md:items-center relative">
+                              <div className="flex items-center relative">
                                     <button
                                           onClick={() =>
                                                 setMobileMenuOpen(
