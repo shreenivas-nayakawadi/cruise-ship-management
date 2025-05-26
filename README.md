@@ -1,5 +1,6 @@
 # Cruise Ship Management System
 live at: https://cruise-ship-management-ca45e.web.app/
+
 A comprehensive web-based management system for cruise ships that handles various aspects of cruise operations including entertainment, activities, spa services, movies, food, and more. The system caters to different user roles including Admin, Manager, Supervisor, Head Cook, and Voyagers (passengers).
 
 ## Table of Contents
