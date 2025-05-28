@@ -3,16 +3,6 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration
-// const firebaseConfig = {
-//   apiKey: "AIzaSyDn-jYvjfQmhpYPwIVWDNO8UAwxjqpRU3Q",
-//   authDomain: "cruise-ship-management-ca45e.firebaseapp.com",
-//   projectId: "cruise-ship-management-ca45e",
-//   storageBucket: "cruise-ship-management-ca45e.firebasestorage.app",
-//   messagingSenderId: "523549719545",
-//   appId: "1:523549719545:web:fde08633a81508751c9b28"
-// };
-
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
